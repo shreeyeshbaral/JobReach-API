@@ -1,12 +1,12 @@
-# Job Apply Automation Pipeline (API 1)
+# JobReach-API
 
-A fully automated backend API and dashboard workflow that connects LinkedIn content scraping with automatic Gmail delivery. 
+JobReach API automates job application workflows by filtering recent job posts based on keywords, extracting available recruiter emails, securely authenticating Gmail via OAuth 2.0, and sending formal application emails with resume attachments through the Gmail API.
 
 ## Features
-- **Step 1: Automatic LinkedIn Authentication**: Automatic headful login via username/password or cookie-based session bypass (`li_at`).
-- **Step 2: Automated Post Search**: Searches LinkedIn content posts in the last 24 hours matching keywords (e.g. `"Java Developer" AND "Contract"`), scrolls to trigger lazy loading, expands text via "see more" click actions, and extracts active recruiter emails.
-- **Step 3: Gmail Integration**: Authenticates securely using a Google OAuth 2.0 flow.
-- **Step 4: Batch Cover Letter & Resume Sender**: Customizes cover letters, uploads PDF/DOCX resumes, and delivers emails to recruiters using the official Gmail API.
+- Automatic LinkedIn authentication (cookie or credentials)
+- Automated post search with lazy-loading and text expansion
+- Recruiter email extraction
+- Gmail OAuth 2.0 integration and batch message sending with attachments
 
 ---
 
@@ -77,3 +77,4 @@ To deliver this project successfully, ensure the following are excluded from you
 - `node_modules/` (large third-party packages)
 - `.env` (contains private API credentials)
 - `data/google-token.json` (contains private Gmail OAuth access tokens)
+
