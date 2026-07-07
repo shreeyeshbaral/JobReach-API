@@ -1,0 +1,16 @@
+[
+  {
+    "id": "post-1",
+    "title": "Java Developer Contract",
+    "text": "Hiring Java Developer for a 6 month Contract. Send resume to recruiter@example.com",
+    "postedAt": "REPLACE_WITH_CURRENT_ISO_TIME",
+    "sourceUrl": "https://www.linkedin.com/posts/example"
+  },
+  {
+    "id": "post-2",
+    "title": "Frontend Developer",
+    "text": "React opening. Contact jobs@example.org",
+    "postedAt": "2020-01-01T00:00:00.000Z",
+    "sourceUrl": "https://www.linkedin.com/posts/example2"
+  }
+]

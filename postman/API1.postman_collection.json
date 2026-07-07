@@ -1,0 +1,28 @@
+{
+  "info": {
+    "name": "API 1 Final Submission",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health"
+      }
+    },
+    {
+      "name": "Gmail Status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/status"
+      }
+    }
+  ]
+}

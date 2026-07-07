@@ -1,0 +1,1 @@
+Run: npm install\nTest: npm test\nStart: npm run dev\nOpen: http://localhost:4000\nSee README.md for Gmail OAuth setup and demo steps.\n
