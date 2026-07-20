@@ -7,6 +7,7 @@ JobReach API automates job application workflows by filtering recent job posts b
 - Automated post search with lazy-loading and text expansion
 - Recruiter email extraction
 - Gmail OAuth 2.0 integration and batch message sending with attachments
+- **Resume Customisation**: Dynamically generates a tailored PDF resume per job post by extracting relevant skills and requirements from the job description
 
 ---
 
@@ -39,7 +40,7 @@ npm run dev
 Open `http://localhost:4000` in your web browser.
 
 ### 4. Running Unit Tests
-Execute the test suite to verify email extraction and query logic:
+Execute the test suite to verify email extraction, query logic, and keyword extraction:
 ```bash
 npm test
 ```
@@ -59,7 +60,7 @@ npm test
   }
   ```
 
-### 2. Gmail Send Application
+### 2. Gmail Send Application (Static Resume)
 - **Endpoint**: `POST /api/jobs/send`
 - **Headers**: `multipart/form-data`
 - **Body Fields**:
@@ -69,6 +70,36 @@ npm test
   - `company`: Target company (optional)
   - `message`: Custom cover letter text
   - `resume`: Binary PDF/DOCX file attachment
+
+### 3. Gmail Send Application (Customised Resume)
+- **Endpoint**: `POST /api/jobs/send`
+- **Headers**: `multipart/form-data`
+- **Body Fields**:
+  - `to`: Recruiter email
+  - `candidateName`: Applicant name
+  - `jobTitle`: Job title
+  - `company`: Target company (optional)
+  - `message`: Custom cover letter text
+  - `customiseResume`: `"true"` — enables dynamic resume generation
+  - `candidateEmail`: Candidate contact email (for resume header)
+  - `candidatePhone`: Candidate contact phone (for resume header)
+  - `candidateSummary`: Professional summary paragraph
+  - `candidateExperience`: Work experience (multi-line text)
+  - `candidateEducation`: Education details (multi-line text)
+  - `candidateSkills`: Comma-separated core skills
+  - `jobPostText`: Raw text of the job post (used to extract relevant keywords)
+
+When `customiseResume` is `"true"`, the server generates a tailored PDF resume that includes a **"Relevant Skills for This Role"** section populated from the job description text. No file upload is needed in this mode.
+
+---
+
+## Resume Customisation Feature
+
+The resume customisation system works in three stages:
+
+1. **Keyword Extraction**: Analyses the job post text using a curated dictionary of 200+ tech skills and NLP-light pattern matching to extract relevant technologies, tools, and requirement lines.
+2. **PDF Generation**: Uses `pdfkit` to build a professionally formatted A4 resume with sections: Header → Professional Summary → Relevant Skills for This Role → Core Skills → Experience → Education.
+3. **Per-Job Tailoring**: Each application generates a unique resume, so every recruiter receives a resume specifically customised for their job posting.
 
 ---
 

@@ -3,6 +3,7 @@ import multer from 'multer';
 import fs from 'node:fs';
 import { filterRecentPosts, allowedEmail } from '../utils/jobs.js';
 import { sendApplication } from '../services/mailer.js';
+import { buildCustomResume } from '../services/resumeBuilder.js';
 
 const router = Router();
 const upload = multer({
@@ -29,17 +30,68 @@ router.post('/search', (req, res) => {
 
 // STEP 3 + 4: explicit user-triggered send, not background spam.
 // multipart fields: to, candidateName, jobTitle, company, sourceUrl, message(optional), resume(file)
+// NEW: customiseResume, candidateEmail, candidatePhone, candidateSummary,
+//      candidateExperience, candidateEducation, candidateSkills, jobPostText
 router.post('/send', upload.single('resume'), async (req, res) => {
-  const cleanup = () => req.file?.path && fs.existsSync(req.file.path) && fs.unlinkSync(req.file.path);
+  let generatedFilePath = null;
+  const cleanup = () => {
+    // Clean up uploaded file
+    if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    // Clean up generated resume
+    if (generatedFilePath && fs.existsSync(generatedFilePath)) fs.unlinkSync(generatedFilePath);
+  };
+
   try {
-    const { to, candidateName, jobTitle, company = 'your company', sourceUrl = '', message } = req.body;
-    if (!to || !candidateName || !jobTitle || !req.file) {
+    const {
+      to, candidateName, jobTitle, company = 'your company', sourceUrl = '', message,
+      // Resume customisation fields
+      customiseResume, candidateEmail, candidatePhone,
+      candidateSummary, candidateExperience, candidateEducation,
+      candidateSkills, jobPostText
+    } = req.body;
+
+    const wantsCustomResume = customiseResume === 'true' || customiseResume === true;
+
+    if (!to || !candidateName || !jobTitle) {
       cleanup();
-      return res.status(400).json({ error: 'to, candidateName, jobTitle and resume are required' });
+      return res.status(400).json({ error: 'to, candidateName, and jobTitle are required' });
     }
+
+    // Either a static resume file or customisation data must be provided
+    if (!wantsCustomResume && !req.file) {
+      cleanup();
+      return res.status(400).json({ error: 'Either upload a resume file or enable resume customisation' });
+    }
+
     if (!allowedEmail(to)) {
       cleanup();
       return res.status(403).json({ error: 'Recipient domain not allowed' });
+    }
+
+    let resumePath, resumeName;
+
+    if (wantsCustomResume) {
+      // Generate a customised PDF resume tailored to this job post
+      console.log(`Generating customised resume for "${jobTitle}"...`);
+      const result = await buildCustomResume({
+        candidateName,
+        candidateEmail: candidateEmail || '',
+        candidatePhone: candidatePhone || '',
+        summary: candidateSummary || '',
+        experience: candidateExperience || '',
+        education: candidateEducation || '',
+        skills: candidateSkills || '',
+        jobPostText: jobPostText || '',
+        jobTitle,
+      });
+      resumePath = result.filePath;
+      resumeName = result.fileName;
+      generatedFilePath = result.filePath;
+      console.log(`Custom resume generated: ${resumeName}`);
+    } else {
+      // Use the static uploaded file
+      resumePath = req.file.path;
+      resumeName = req.file.originalname;
     }
 
     const text = message || `Dear Hiring Team,
@@ -55,11 +107,11 @@ ${candidateName}`;
       to,
       subject: `Application for ${jobTitle} - ${candidateName}`,
       text,
-      resumePath: req.file.path,
-      resumeName: req.file.originalname
+      resumePath,
+      resumeName,
     });
     cleanup();
-    res.json({ ok: true, gmailMessageId: result.id, to });
+    res.json({ ok: true, gmailMessageId: result.id, to, resumeCustomised: wantsCustomResume });
   } catch (e) {
     cleanup();
     res.status(500).json({ error: e.message });

@@ -23,6 +23,63 @@
         "method": "GET",
         "url": "{{baseUrl}}/auth/status"
       }
+    },
+    {
+      "name": "LinkedIn Search Posts",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/linkedin/search-posts",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"liAtCookie\": \"YOUR_LI_AT_COOKIE\",\n  \"keywords\": [\"Java Developer\", \"Contract\"]\n}"
+        }
+      }
+    },
+    {
+      "name": "Send Application (Static Resume)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/jobs/send",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "to", "value": "recruiter@example.com", "type": "text" },
+            { "key": "candidateName", "value": "Alex Carter", "type": "text" },
+            { "key": "jobTitle", "value": "Java Developer", "type": "text" },
+            { "key": "company", "value": "TechCorp", "type": "text" },
+            { "key": "message", "value": "Dear Hiring Team, ...", "type": "text" },
+            { "key": "resume", "type": "file", "src": "" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send Application (Customised Resume)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/jobs/send",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "to", "value": "recruiter@example.com", "type": "text" },
+            { "key": "candidateName", "value": "Alex Carter", "type": "text" },
+            { "key": "jobTitle", "value": "Java Developer", "type": "text" },
+            { "key": "company", "value": "TechCorp", "type": "text" },
+            { "key": "customiseResume", "value": "true", "type": "text" },
+            { "key": "candidateEmail", "value": "alex@example.com", "type": "text" },
+            { "key": "candidatePhone", "value": "+1 234-567-8900", "type": "text" },
+            { "key": "candidateSummary", "value": "Experienced Java developer with 5+ years in enterprise applications", "type": "text" },
+            { "key": "candidateExperience", "value": "Senior Developer at TechCorp (2021-Present)\n- Built microservices with Spring Boot\n- Managed AWS infrastructure", "type": "text" },
+            { "key": "candidateEducation", "value": "B.Tech Computer Science, MIT (2015-2019)", "type": "text" },
+            { "key": "candidateSkills", "value": "Java, Spring Boot, AWS, Docker, PostgreSQL, REST APIs", "type": "text" },
+            { "key": "jobPostText", "value": "Hiring a Java Developer with Spring Boot experience. Must know Docker, Kubernetes, and CI/CD.", "type": "text" },
+            { "key": "message", "value": "Dear Hiring Team, ...", "type": "text" }
+          ]
+        }
+      }
     }
   ]
 }
