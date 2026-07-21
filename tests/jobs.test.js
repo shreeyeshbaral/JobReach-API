@@ -87,4 +87,66 @@ const result4 = extractResumeKeywords(megaPost);
 assert.ok(result4.skills.length <= 20, 'Skills should be capped at 20');
 console.log(`  ✓ Large post: capped at ${result4.skills.length} skills (max 20)`);
 
+// ═══════════════════════════════════════════
+//  Unit Test: Gemini Manual Resume & Skill-Only Tailoring
+// ═══════════════════════════════════════════
+console.log('Running unit tests for Gemini Manual Resume & Skill-Only Tailoring...');
+
+import { generateStructuredResumeFromManualInput, tailorResumeSkillsOnlyWithGemini } from '../src/services/gemini.js';
+
+const sampleManualText = `SHREEYESH BARAL
+
++91 6370893235 | shreeyesh7817@gmail.com | LinkedIn | GitHub
+
+PROJECTS
+
+Chronos AI – AI-Powered Productivity Workspace
+● Developed a full-stack productivity platform using React.js, Vite, Tailwind CSS, Firebase.
+● Integrated Google Gemini AI for intelligent task prioritization.
+
+EDUCATION
+
+Siksha ‘O’ Anusandhan Deemed to be University
+Bachelors of Technology in Computer Science Engineering
+● CGPA - 7.78
+● Mar 2026
+
+CERTIFICATIONS
+
+● IBM SkillsBuild - Getting Started with Artificial Intelligence
+
+TECHNICAL SKILLS
+
+● React.js, Vite, Tailwind CSS, Firebase, Google Gemini AI
+● Java, JavaScript, Python
+
+EXTRA-CURRICULARS
+
+● Tech Team, Coding Ninjas 10XOC ITER`;
+
+const structuredResume = await generateStructuredResumeFromManualInput(sampleManualText);
+assert.ok(structuredResume, 'Should parse structured resume');
+assert.equal(structuredResume.candidateName.toUpperCase(), 'SHREEYESH BARAL');
+assert.ok(structuredResume.projects.length > 0, 'Should have projects');
+assert.ok(structuredResume.education.length > 0, 'Should have education');
+assert.ok(structuredResume.technicalSkills.length > 0, 'Should have technical skills');
+console.log('  ✓ Manual resume parsed into structured format successfully!');
+
+// Test Skill-Only Tailoring: Projects, Education, Certs, Extracurriculars MUST stay 100% untouched
+const jobJD = 'We are looking for a Python Developer with FastAPI, Docker, and PostgreSQL expertise.';
+const tailoredResume = await tailorResumeSkillsOnlyWithGemini({
+  baseResume: structuredResume,
+  jobPostText: jobJD,
+  jobTitle: 'Python Developer'
+});
+
+assert.equal(tailoredResume.candidateName, structuredResume.candidateName, 'Candidate name must remain untouched');
+assert.equal(tailoredResume.contactHeader, structuredResume.contactHeader, 'Contact header must remain untouched');
+assert.deepEqual(tailoredResume.projects, structuredResume.projects, 'Projects MUST be 100% unchanged');
+assert.deepEqual(tailoredResume.education, structuredResume.education, 'Education MUST be 100% unchanged');
+assert.deepEqual(tailoredResume.certifications, structuredResume.certifications, 'Certifications MUST be 100% unchanged');
+assert.deepEqual(tailoredResume.extracurriculars, structuredResume.extracurriculars, 'Extracurriculars MUST be 100% unchanged');
+
+console.log('  ✓ Skill-only tailoring verified: Projects, Education, Certifications, and Extracurriculars remained 100% intact!');
+
 console.log('\nAll core tests passed successfully. ✓');

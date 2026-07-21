@@ -1,41 +1,59 @@
-/**
- * Resume Builder Service
- * Generates a professionally formatted PDF resume using pdfkit,
- * tailored with skills extracted from a specific job post.
- */
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import PDFDocument from 'pdfkit';
-import { extractResumeKeywords } from '../utils/resumeKeywords.js';
+import { generateGeminiTailoredResume } from './gemini.js';
+
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 
 /**
- * Generates a customised PDF resume tailored to a specific job post.
- *
- * @param {object} options
- * @param {string} options.candidateName   - Full name of the candidate
- * @param {string} options.candidateEmail  - Contact email
- * @param {string} options.candidatePhone  - Contact phone
- * @param {string} options.summary         - Professional summary paragraph
- * @param {string} options.experience      - Work experience (multi-line text)
- * @param {string} options.education       - Education details (multi-line text)
- * @param {string} options.skills          - Comma-separated core skills
- * @param {string} options.jobPostText     - The raw text of the job post to tailor for
- * @param {string} options.jobTitle        - The job title being applied for
- * @returns {Promise<{ filePath: string, fileName: string }>}
+ * Generates a customised PDF resume tailored to a specific job post using Gemini 2.5 AI.
+ * If oldResumePath is provided, extracts text from the uploaded PDF and uses Gemini
+ * to automatically tailor it to the new job post.
  */
 export async function buildCustomResume({
-  candidateName,
+  candidateName = '',
   candidateEmail = '',
   candidatePhone = '',
+  recruiterName = '',
   summary = '',
   experience = '',
   education = '',
   skills = '',
   jobPostText = '',
   jobTitle = '',
+  oldResumePath = ''
 }) {
-  // Extract keywords from the job post
-  const extracted = extractResumeKeywords(jobPostText);
+  let oldResumeText = '';
+  if (oldResumePath && fs.existsSync(oldResumePath)) {
+    try {
+      console.log(`[Resume Builder] Extracting text from uploaded PDF: ${oldResumePath}...`);
+      const dataBuffer = fs.readFileSync(oldResumePath);
+      const pdfData = await pdfParse(dataBuffer);
+      oldResumeText = pdfData.text || '';
+      console.log(`[Resume Builder] Extracted ${oldResumeText.length} characters from uploaded PDF!`);
+    } catch (e) {
+      console.error('[Resume Builder] PDF parse warning:', e.message);
+    }
+  }
+
+  // Use Gemini AI (or local fallback) to generate tailored summary and matched skills
+  const extracted = await generateGeminiTailoredResume({
+    candidateName,
+    recruiterName,
+    jobTitle,
+    jobPostText,
+    oldResumeText,
+    summary,
+    skills,
+    experience,
+    education
+  });
+
+  const finalName = extracted.candidateName || candidateName || 'Candidate';
+  const finalEmail = extracted.candidateEmail || candidateEmail || '';
+  const finalPhone = extracted.candidatePhone || candidatePhone || '';
 
   // Ensure output directory exists
   const outputDir = path.resolve('uploads');
@@ -120,11 +138,15 @@ export async function buildCustomResume({
       .stroke();
 
     // ══════════════════════════════════════════
-    //  PROFESSIONAL SUMMARY
+    //  PROFESSIONAL SUMMARY (Gemini AI Tailored)
     // ══════════════════════════════════════════
-    if (summary.trim()) {
-      sectionHeading('Professional Summary');
-      bodyText(summary.trim());
+    const displaySummary = (extracted.summary || summary).trim();
+    if (displaySummary) {
+      const summaryHeading = extracted.isGeminiEnhanced 
+        ? 'Professional Summary (AI Tailored)' 
+        : 'Professional Summary';
+      sectionHeading(summaryHeading);
+      bodyText(displaySummary);
     }
 
     // ══════════════════════════════════════════
@@ -173,11 +195,12 @@ export async function buildCustomResume({
     }
 
     // ══════════════════════════════════════════
-    //  WORK EXPERIENCE
+    //  WORK EXPERIENCE (Original CV Preserved)
     // ══════════════════════════════════════════
-    if (experience.trim()) {
-      sectionHeading('Work Experience');
-      const expBlocks = experience.trim().split(/\n{2,}/);
+    const displayExp = (extracted.experience || oldResumeText || experience).trim();
+    if (displayExp) {
+      sectionHeading('Work Experience & Career History');
+      const expBlocks = displayExp.split(/\n{2,}/);
       for (const block of expBlocks) {
         const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
         if (lines.length === 0) continue;
@@ -202,11 +225,12 @@ export async function buildCustomResume({
     }
 
     // ══════════════════════════════════════════
-    //  EDUCATION
+    //  EDUCATION & QUALIFICATIONS
     // ══════════════════════════════════════════
-    if (education.trim()) {
-      sectionHeading('Education');
-      const eduBlocks = education.trim().split(/\n{2,}/);
+    const displayEdu = (extracted.education || education).trim();
+    if (displayEdu) {
+      sectionHeading('Education & Qualifications');
+      const eduBlocks = displayEdu.split(/\n{2,}/);
       for (const block of eduBlocks) {
         const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
         if (lines.length === 0) continue;
@@ -226,6 +250,38 @@ export async function buildCustomResume({
       }
     }
 
+    // ══════════════════════════════════════════
+    //  CERTIFICATIONS & CREDENTIALS
+    // ══════════════════════════════════════════
+    const displayCerts = (extracted.certifications || '').trim();
+    if (displayCerts) {
+      sectionHeading('Certifications & Professional Credentials');
+      const certLines = displayCerts.split('\n').map(l => l.trim()).filter(Boolean);
+      for (const line of certLines) {
+        doc.fontSize(10)
+          .fillColor(COLORS.text)
+          .font('Helvetica')
+          .text(`  ▸  ${line.replace(/^[-•*▸]/, '').trim()}`, { lineGap: 2, indent: 6 });
+      }
+      doc.moveDown(0.3);
+    }
+
+    // ══════════════════════════════════════════
+    //  EXTRACURRICULAR ACTIVITIES & PROJECTS
+    // ══════════════════════════════════════════
+    const displayExtras = (extracted.extracurriculars || '').trim();
+    if (displayExtras) {
+      sectionHeading('Extracurricular Activities & Key Projects');
+      const extraLines = displayExtras.split('\n').map(l => l.trim()).filter(Boolean);
+      for (const line of extraLines) {
+        doc.fontSize(10)
+          .fillColor(COLORS.text)
+          .font('Helvetica')
+          .text(`  ▸  ${line.replace(/^[-•*▸]/, '').trim()}`, { lineGap: 2, indent: 6 });
+      }
+      doc.moveDown(0.3);
+    }
+
     // ── Footer ──
     doc.moveDown(1);
     doc.moveTo(doc.page.margins.left, doc.y)
@@ -242,7 +298,194 @@ export async function buildCustomResume({
     // Finalise
     doc.end();
 
-    stream.on('finish', () => resolve({ filePath, fileName }));
+    stream.on('finish', () => resolve({ filePath, fileName, coverLetter: extracted.coverLetter || '' }));
     stream.on('error', reject);
   });
 }
+
+/**
+ * Generates a PDF resume directly from a structured resume JSON object.
+ * Following the exact layout:
+ * - Header: CANDIDATE NAME (bold, centered)
+ * - Subheader: Contact line (+91 ... | Email | LinkedIn | GitHub)
+ * - Sections: PROJECTS, EDUCATION, CERTIFICATIONS, TECHNICAL SKILLS, EXTRA-CURRICULARS
+ */
+export async function generatePDFFromStructuredResume(resumeObj, { jobTitle = '' } = {}) {
+  const outputDir = path.resolve('uploads');
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const nameForFile = (resumeObj.candidateName || 'Candidate').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  const fileName = `Resume_${nameForFile}_${Date.now()}.pdf`;
+  const filePath = path.join(outputDir, fileName);
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({
+      size: 'A4',
+      margins: { top: 40, bottom: 40, left: 45, right: 45 },
+      info: {
+        Title: `${resumeObj.candidateName || 'Candidate'} - Resume`,
+        Author: resumeObj.candidateName || 'Candidate',
+        Subject: `Resume${jobTitle ? ' for ' + jobTitle : ''}`,
+      },
+    });
+
+    const stream = fs.createWriteStream(filePath);
+    doc.pipe(stream);
+
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    const COLORS = {
+      primary: '#111827',   // Near-black slate
+      heading: '#1e293b',   // Dark slate blue
+      accent: '#2563eb',    // Royal blue accent
+      text: '#1f2937',      // Text dark grey
+      muted: '#4b5563',     // Muted grey
+      light: '#cbd5e1',     // Line separator
+    };
+
+    function drawSectionHeading(title) {
+      doc.moveDown(0.5);
+      doc.fontSize(11)
+        .fillColor(COLORS.heading)
+        .font('Helvetica-Bold')
+        .text(title.toUpperCase(), { characterSpacing: 1.2 });
+      
+      const y = doc.y + 2;
+      doc.moveTo(doc.page.margins.left, y)
+        .lineTo(doc.page.margins.left + pageWidth, y)
+        .strokeColor(COLORS.accent)
+        .lineWidth(1.25)
+        .stroke();
+      doc.moveDown(0.4);
+    }
+
+    // 1. Header: Name & Contact
+    doc.fontSize(20)
+      .fillColor(COLORS.primary)
+      .font('Helvetica-Bold')
+      .text((resumeObj.candidateName || 'CANDIDATE NAME').toUpperCase(), { align: 'center', characterSpacing: 1.5 });
+
+    if (resumeObj.contactHeader) {
+      doc.moveDown(0.2);
+      doc.fontSize(9.5)
+        .fillColor(COLORS.muted)
+        .font('Helvetica')
+        .text(resumeObj.contactHeader, { align: 'center' });
+    }
+
+    doc.moveDown(0.4);
+    const lineY = doc.y;
+    doc.moveTo(doc.page.margins.left, lineY)
+      .lineTo(doc.page.margins.left + pageWidth, lineY)
+      .strokeColor(COLORS.light)
+      .lineWidth(0.75)
+      .stroke();
+    doc.moveDown(0.4);
+
+    // 2. PROJECTS
+    if (Array.isArray(resumeObj.projects) && resumeObj.projects.length > 0) {
+      drawSectionHeading('PROJECTS');
+      for (const proj of resumeObj.projects) {
+        if (typeof proj === 'string') {
+          doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(proj, { lineGap: 2 });
+        } else {
+          if (proj.title) {
+            doc.fontSize(10)
+              .fillColor(COLORS.primary)
+              .font('Helvetica-Bold')
+              .text(proj.title, { lineGap: 2 });
+          }
+          if (Array.isArray(proj.bullets)) {
+            for (const b of proj.bullets) {
+              const cleanBullet = b.replace(/^[-•*●]\s*/, '');
+              doc.fontSize(9.5)
+                .fillColor(COLORS.text)
+                .font('Helvetica')
+                .text(`  \u2022  ${cleanBullet}`, { lineGap: 2, indent: 6 });
+            }
+          }
+        }
+        doc.moveDown(0.3);
+      }
+    }
+
+    // 3. EDUCATION
+    if (Array.isArray(resumeObj.education) && resumeObj.education.length > 0) {
+      drawSectionHeading('EDUCATION');
+      for (const edu of resumeObj.education) {
+        if (typeof edu === 'string') {
+          doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(edu, { lineGap: 2 });
+        } else {
+          if (edu.institution) {
+            doc.fontSize(10)
+              .fillColor(COLORS.primary)
+              .font('Helvetica-Bold')
+              .text(edu.institution, { lineGap: 1 });
+          }
+          if (edu.degree) {
+            doc.fontSize(9.5)
+              .fillColor(COLORS.muted)
+              .font('Helvetica-Oblique')
+              .text(edu.degree, { lineGap: 2, indent: 4 });
+          }
+          if (Array.isArray(edu.bullets)) {
+            for (const b of edu.bullets) {
+              const cleanBullet = b.replace(/^[-•*●]\s*/, '');
+              doc.fontSize(9.5)
+                .fillColor(COLORS.text)
+                .font('Helvetica')
+                .text(`  \u2022  ${cleanBullet}`, { lineGap: 2, indent: 6 });
+            }
+          }
+        }
+        doc.moveDown(0.3);
+      }
+    }
+
+    // 4. CERTIFICATIONS
+    if (Array.isArray(resumeObj.certifications) && resumeObj.certifications.length > 0) {
+      drawSectionHeading('CERTIFICATIONS');
+      for (const cert of resumeObj.certifications) {
+        const clean = cert.replace(/^[-•*●]\s*/, '');
+        doc.fontSize(9.5)
+          .fillColor(COLORS.text)
+          .font('Helvetica')
+          .text(`  \u2022  ${clean}`, { lineGap: 2, indent: 6 });
+      }
+      doc.moveDown(0.3);
+    }
+
+    // 5. TECHNICAL SKILLS
+    if (Array.isArray(resumeObj.technicalSkills) && resumeObj.technicalSkills.length > 0) {
+      drawSectionHeading('TECHNICAL SKILLS');
+      for (const skillLine of resumeObj.technicalSkills) {
+        const clean = skillLine.replace(/^[-•*●]\s*/, '');
+        doc.fontSize(9.5)
+          .fillColor(COLORS.text)
+          .font('Helvetica')
+          .text(`  \u2022  ${clean}`, { lineGap: 2, indent: 6 });
+      }
+      doc.moveDown(0.3);
+    }
+
+    // 6. EXTRA-CURRICULARS
+    if (Array.isArray(resumeObj.extracurriculars) && resumeObj.extracurriculars.length > 0) {
+      drawSectionHeading('EXTRA-CURRICULARS');
+      for (const extra of resumeObj.extracurriculars) {
+        const clean = extra.replace(/^[-•*●]\s*/, '');
+        doc.fontSize(9.5)
+          .fillColor(COLORS.text)
+          .font('Helvetica')
+          .text(`  \u2022  ${clean}`, { lineGap: 2, indent: 6 });
+      }
+      doc.moveDown(0.3);
+    }
+
+    // Finalize
+    doc.end();
+
+    stream.on('finish', () => resolve({ filePath, fileName, coverLetter: '' }));
+    stream.on('error', reject);
+  });
+}
+
