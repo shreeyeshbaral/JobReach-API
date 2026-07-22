@@ -131,6 +131,7 @@ def dispatch_applications(jobs, resume_path):
             add_field('candidateName', 'SHREEYESH BARAL' if raw_resume_text else 'Candidate')
             add_field('jobTitle', title)
             add_field('company', 'Hiring Team')
+            add_field('recruiterName', author)
             add_field('sourceUrl', source_url)
             add_field('customiseResume', 'true')
             add_field('jobPostText', text[:2000])

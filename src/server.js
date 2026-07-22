@@ -24,4 +24,4 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => console.log(`Dashboard: http://localhost:${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`Dashboard: http://localhost:${port} (or http://127.0.0.1:${port})`));

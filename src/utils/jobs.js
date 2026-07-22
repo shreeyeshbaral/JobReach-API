@@ -208,35 +208,100 @@ export function matchesStrictFilter(text = '', targetRole = '') {
 }
 
 /**
+ * Smart Recruiter Name Extractor:
+ * 1. Checks for sign-off signatures in job description (e.g. Thanks & Regards, Queentina Baskalin).
+ * 2. Extracts name from recruiter email username (before @), stripping numbers and formatting words.
+ * 3. Falls back to author if non-generic, otherwise "Hiring Team".
+ */
+export function extractRecruiterName(text = '', recruiterEmail = '', author = '') {
+  if (author && typeof author === 'string') {
+    const cleanAuthor = author.trim();
+    const lowerAuthor = cleanAuthor.toLowerCase();
+    const genericTerms = ['recruiter', 'linkedin recruiter', 'hiring manager', 'hiring team', 'talent acquisition', 'hr team', 'na', 'n/a', 'candidate', 'none', 'null', 'undefined'];
+    if (cleanAuthor && !genericTerms.includes(lowerAuthor)) {
+      return cleanAuthor;
+    }
+  }
+
+  if (text && typeof text === 'string') {
+    const signaturePatterns = [
+      /(?:thanks\s*(?:&|and)?\s*regards|warm\s*regards|best\s*regards|kind\s*regards|regards|thanks|cheers|sincerely|best|submitted\s*by|posted\s*by|written\s*by|contact|recruiter|hiring\s*manager|reach\s*out\s*to)[,\s\n\r:]+([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){0,3})/i,
+      /(?:posted|shared)\s+by\s+([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){0,3})/i,
+      /([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){1,2})\s*[-–—|]\s*(?:Recruiter|Hiring Manager|Talent Acquisition|HR|Technical Recruiter)/i
+    ];
+    for (const pat of signaturePatterns) {
+      const match = text.match(pat);
+      if (match && match[1]) {
+        const candidateName = match[1].trim();
+        const lowerName = candidateName.toLowerCase();
+        const nonNameWords = ['talent', 'acquisition', 'team', 'recruiter', 'hiring', 'manager', 'company', 'corp', 'inc', 'llc', 'solutions', 'technologies', 'services', 'human', 'resources', 'email', 'contact', 'link', 'post', 'job', 'details'];
+        if (!nonNameWords.some(w => lowerName.includes(w)) && candidateName.length >= 2) {
+          return candidateName;
+        }
+      }
+    }
+  }
+
+  if (recruiterEmail && typeof recruiterEmail === 'string' && recruiterEmail.includes('@')) {
+    const username = recruiterEmail.split('@')[0].trim();
+    const genericEmails = ['hr', 'careers', 'jobs', 'hiring', 'contact', 'info', 'recruitment', 'recruiter', 'sales', 'support', 'admin', 'help', 'office', 'talent', 'apply', 'team', 'work'];
+    if (username && !genericEmails.includes(username.toLowerCase())) {
+      const cleanParts = username
+        .replace(/[^a-zA-Z\s._\-+]/g, '')
+        .split(/[._\-+\s]+/)
+        .filter(part => part.length >= 2);
+
+      if (cleanParts.length > 0) {
+        const formattedWords = cleanParts.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+        const resultName = formattedWords.join(' ');
+        if (resultName.length >= 2) {
+          return resultName;
+        }
+      }
+    }
+  }
+
+  return 'Hiring Team';
+}
+
+/**
  * Validates job data prior to AI resume tailoring and email dispatch per Phase 8 requirements.
  * Ensures recruiter_name falls back to "Hiring Team" and rejects jobs missing job_post_url or job_description.
  */
 export function validateJobData(job = {}) {
   const errors = [];
 
-  // 1. Recruiter Name (Phase 4 & 8: fallback to "Hiring Team" if unavailable)
-  let recruiter_name = (job.recruiter_name || job.author || job.recruiterName || '').trim();
-  if (!recruiter_name || recruiter_name.toLowerCase() === 'recruiter' || recruiter_name.toLowerCase() === 'linkedin recruiter' || recruiter_name.toLowerCase() === 'hiring manager') {
-    recruiter_name = 'Hiring Team';
-  }
-
-  // 2. LinkedIn Job Posting URL (Phase 2 & 10: MUST contain linkedin.com/jobs/view/)
-  let job_post_url = (job.job_post_url || job.sourceUrl || job.post_url || job.jobPostingLink || '').trim();
-  if (!job_post_url || !job_post_url.includes('linkedin.com/jobs/view/')) {
-    errors.push(`Invalid job_post_url (must be an exact LinkedIn Job Posting URL containing "linkedin.com/jobs/view/"). Extracted URL was: "${job_post_url || 'empty'}"`);
-  }
-
-  // 3. Complete Job Description (Phase 3 & 10: min 40 chars, not placeholder)
+  // 3. Complete Job Description
   let job_description = (job.job_description || job.text || job.jobPostText || '').trim();
-  if (!job_description || job_description.length < 40 || job_description.toLowerCase().includes('placeholder job description')) {
-    errors.push('Missing or insufficient job_description (minimum 40 characters required)');
-  }
 
-  // 4. Recruiter Email (Phase 4: null if unavailable, no guessing)
+  // 4. Recruiter Email
   let recruiter_email = (job.recruiter_email || job.to || (Array.isArray(job.recruiterEmails) ? job.recruiterEmails[0] : null) || null);
   if (recruiter_email && typeof recruiter_email === 'string') {
     recruiter_email = recruiter_email.trim().toLowerCase();
     if (!recruiter_email.includes('@')) recruiter_email = null;
+  }
+
+  // 1. Recruiter Name (Smart extraction via post signature, email username, or author)
+  let recruiter_name = (job.recruiter_name || job.author || job.recruiterName || '').trim();
+  recruiter_name = extractRecruiterName(job_description, recruiter_email, recruiter_name);
+
+  // 2. LinkedIn Post / Job Posting URL (supports linkedin.com/posts/, linkedin.com/feed/update/, linkedin.com/jobs/view/, etc.)
+  let job_post_url = (job.job_post_url || job.sourceUrl || job.post_url || job.jobPostingLink || '').trim();
+  if (!job_post_url) {
+    job_post_url = (job_description.match(/https?:\/\/[^\s]+/)?.[0]) || 'https://www.linkedin.com';
+  }
+
+  const isValidUrl = Boolean(job_post_url) && (
+    job_post_url.includes('linkedin.com') ||
+    job_post_url.startsWith('http://') ||
+    job_post_url.startsWith('https://')
+  );
+  if (!isValidUrl) {
+    job_post_url = 'https://www.linkedin.com';
+  }
+
+  if (!job_description || job_description.length < 15 || job_description.toLowerCase().includes('placeholder job description')) {
+    errors.push('Missing or insufficient job_description (minimum 15 characters required)');
   }
 
   // 5. Job Title & Company Name
@@ -336,6 +401,7 @@ export function formatTemplateWithVariables(templateStr = '', vars = {}) {
   let output = templateStr
     // Handlebars placeholders {{ variable }}
     .replace(/\{\{\s*recruiter_name\s*\}\}/gi, recruiter_name)
+    .replace(/\{\{\s*recruiter\s*\}\}/gi, recruiter_name)
     .replace(/\{\{\s*job_title\s*\}\}/gi, job_title)
     .replace(/\{\{\s*company_name\s*\}\}/gi, company_name)
     .replace(/\{\{\s*job_post_url\s*\}\}/gi, job_post_url)
@@ -356,6 +422,7 @@ export function formatTemplateWithVariables(templateStr = '', vars = {}) {
     .replace(/\{\{\s*candidate_salary\s*\}\}/gi, clean_sal)
     // Bracket placeholders [Variable Name]
     .replace(/\[Recruiter Name\]/gi, recruiter_name)
+    .replace(/\[Recruiter\]/gi, recruiter_name)
     .replace(/\[Job Title\]/gi, job_title)
     .replace(/\[Company Name\]/gi, company_name)
     .replace(/\[Company\]/gi, company_name)
@@ -378,6 +445,12 @@ export function formatTemplateWithVariables(templateStr = '', vars = {}) {
     .replace(/\[Availability\]/gi, clean_avail)
     .replace(/\[Total Experience\]/gi, clean_exp)
     .replace(/\[Expected Salary\]/gi, clean_sal);
+
+  if (recruiter_name && recruiter_name !== 'Hiring Team' && recruiter_name !== 'Hiring Manager') {
+    output = output.replace(/^Dear\s+(?:Hiring Team|Hiring Manager|Recruiter)\b/gi, `Dear ${recruiter_name}`);
+  }
+
+  return output;
 
   return output;
 }

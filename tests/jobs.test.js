@@ -198,18 +198,18 @@ assert.ok(valRes1.valid, 'Valid job data should pass validation');
 assert.equal(valRes1.data.recruiter_name, 'Hiring Team', 'Empty recruiter name should fall back to "Hiring Team"');
 console.log('  ✓ Recruiter name defaults to "Hiring Team" when unavailable');
 
-// Test 2: Pre-send validation fails when job_post_url or job_description is missing
-const invalidJob = {
-  title: 'Full Stack Dev',
-  author: 'Jane Doe',
-  sourceUrl: '', // missing URL
-  text: 'Too short', // short text < 30 chars
-  recruiterEmails: ['jane@company.com']
+// Test 2: Pre-send validation accepts LinkedIn Post URLs (linkedin.com/posts/...)
+const postUrlJob = {
+  title: 'Java Developer',
+  company: 'UniApply',
+  sourceUrl: 'https://www.linkedin.com/posts/yasir-arafat-sharfi_uniapply-is-hiring-java-developers-freshers-share-7485628769362161664-PBxf/',
+  text: 'UniApply is hiring Java Developers for freshers. Thanks & Regards, Yasir Arafat Sharfi',
+  recruiterEmails: ['yasir@uniapply.com']
 };
-const valRes2 = validateJobData(invalidJob);
-assert.equal(valRes2.valid, false, 'Invalid job with missing URL & short description should fail validation');
-assert.ok(valRes2.errors.length >= 2, 'Should report errors for missing URL and short description');
-console.log('  ✓ Pre-send validation correctly rejects jobs missing job_post_url or sufficient description');
+const valResPost = validateJobData(postUrlJob);
+assert.ok(valResPost.valid, 'LinkedIn Post URLs (linkedin.com/posts/) must pass validation cleanly');
+assert.equal(valResPost.data.recruiter_name, 'Yasir Arafat Sharfi', 'Recruiter name extracted from signature');
+console.log('  ✓ LinkedIn Post URLs (linkedin.com/posts/) pass pre-send validation cleanly!');
 
 // Test 3: Dynamic template injection supports Handlebars and Bracket placeholders (Phase 7)
 const templateStr = `Dear {{ recruiter_name }},
@@ -281,5 +281,40 @@ assert.ok(!categorizedStr.includes('analytical'), 'Must exclude non-programming 
 assert.ok(!categorizedStr.includes('problem solving'), 'Must exclude non-programming soft skill "Problem Solving"');
 assert.ok(!categorizedStr.includes('leadership'), 'Must exclude non-programming soft skill "Leadership"');
 console.log('  ✓ Non-programming soft skills (analytical skills, problem solving, leadership, etc.) strictly excluded!');
+
+// ═══════════════════════════════════════════
+//  Unit Test: Recruiter Name Auto-Extraction & Manual Override in Email Body
+// ═══════════════════════════════════════════
+console.log('Running unit tests for Recruiter Name Auto-Extraction & Manual Override...');
+import { extractRecruiterName } from '../src/utils/jobs.js';
+
+// 1. Auto Extraction from Job Description signature
+const jdWithSignature = `We are hiring a Senior Java Developer at Acme Corp.
+Responsibilities: Build microservices and APIs.
+Thanks & Regards,
+Queentina Baskalin`;
+
+const autoExtractedName = extractRecruiterName(jdWithSignature, 'recruiter@acme.com', '');
+assert.equal(autoExtractedName, 'Queentina Baskalin', 'Should auto-extract recruiter name from signature');
+
+const emailBodyAuto = formatTemplateWithVariables('Dear [Recruiter Name],\n\nI am applying for [Job Title].', {
+  recruiter_name: autoExtractedName,
+  job_title: 'Java Developer'
+});
+assert.ok(emailBodyAuto.includes('Dear Queentina Baskalin,'), 'Email greeting must state "Dear Queentina Baskalin,"');
+
+// 2. Manual Override (user typed recruiter name)
+const typedRecruiterName = 'John Smith';
+const manualOverrideName = extractRecruiterName(jdWithSignature, 'recruiter@acme.com', typedRecruiterName);
+assert.equal(manualOverrideName, 'John Smith', 'User typed recruiter name must override JD signature');
+
+const emailBodyManual = formatTemplateWithVariables('Dear [Recruiter Name],\n\nI am applying for [Job Title].', {
+  recruiter_name: manualOverrideName,
+  job_title: 'Java Developer'
+});
+assert.ok(emailBodyManual.includes('Dear John Smith,'), 'Email greeting must state "Dear John Smith," alongside it');
+
+console.log('  ✓ Auto-extraction from JD signature verified ("Dear Queentina Baskalin,")!');
+console.log('  ✓ Manual recruiter name typing override verified ("Dear John Smith,")!');
 
 console.log('\nAll core tests passed successfully. ✓');

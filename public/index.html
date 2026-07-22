@@ -1151,11 +1151,19 @@
 
         <!-- MANUAL SEARCH QUERY INPUT -->
         <div class="field">
-          <label for="searchQueryInput">Search Query (Manual Format)</label>
-          <input type="text" id="searchQueryInput" value='"Software Engineer" full-time -C2C'
-            placeholder='"Job Title" full-time -C2C'>
-          <div class="search-hint">Format: <strong>"Job title"</strong> full-time -C2C &nbsp;|&nbsp; Use quotes for
-            exact match, minus (-) to exclude terms</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+            <label for="searchQueryInput" style="margin-bottom: 0;">🔍 Search Query (Manual Format)</label>
+            <div style="display: flex; gap: 8px; font-size: 0.76rem;">
+              <button type="button" class="btn btn-outline" style="font-size: 0.72rem; padding: 3px 10px;" onclick="setQueryFormat('standard')">Option 1: Standard ("Job Title" full-time -C2C)</button>
+              <button type="button" class="btn btn-outline" style="font-size: 0.72rem; padding: 3px 10px; border-color: rgba(99, 102, 241, 0.6); color: #a5b4fc; background: rgba(99, 102, 241, 0.12);" onclick="setQueryFormat('multi-exclusion')">Option 2: Multi-Exclusion (Java developer C2C -bench -sales -w2 -fulltime -hotlist)</button>
+            </div>
+          </div>
+          <input type="text" id="searchQueryInput" value='Java developer C2C -bench -sales -w2 -fulltime -hotlist'
+            placeholder='e.g. Java developer C2C -bench -sales -w2 -fulltime -hotlist'>
+          <div class="search-hint">Manual Formats Supported: 
+            <strong>"Software Engineer" full-time -C2C</strong> &nbsp;|&nbsp; 
+            <strong style="color: #a5b4fc;">Java developer C2C -bench -sales -w2 -fulltime -hotlist</strong> (Use minus - to exclude unwanted terms)
+          </div>
         </div>
 
         <div class="field-row" style="margin-top: 16px;">
@@ -1198,6 +1206,7 @@
         <!-- QUICK PRESET CHIPS -->
         <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
           <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Quick Job Filters:</span>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px; border-color: rgba(99, 102, 241, 0.6); color: #a5b4fc;" onclick="setQueryFormat('multi-exclusion')">⚡ C2C Multi-Exclusion (-bench -sales -w2 -hotlist)</button>
           <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('all')">🌐 All Jobs</button>
           <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('remote')">🏠 Remote Only</button>
           <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('onsite')">🏢 On-Site Only</button>
@@ -1504,9 +1513,15 @@
               Direct Recruiter Outreach &amp; JD Studio
             </h3>
 
-            <div class="field">
-              <label for="directRecruiterEmail">Recruiter Email Address (Direct Send)</label>
-              <input type="email" id="directRecruiterEmail" placeholder="e.g. recruiter@company.com">
+            <div class="field-row" style="display: flex; gap: 16px; margin-bottom: 14px;">
+              <div class="field" style="flex: 1; margin-bottom: 0;">
+                <label for="directRecruiterName">👤 Recruiter Name (Auto-Extracted from JD / Direct)</label>
+                <input type="text" id="directRecruiterName" placeholder="e.g. Queentina Baskalin (Auto-filled from JD)" oninput="cleanTypedRecruiterName(this.value)" onchange="cleanTypedRecruiterName(this.value)">
+              </div>
+              <div class="field" style="flex: 1; margin-bottom: 0;">
+                <label for="directRecruiterEmail">📧 Recruiter Email Address (Direct Send)</label>
+                <input type="email" id="directRecruiterEmail" placeholder="e.g. recruiter@company.com">
+              </div>
             </div>
 
             <div class="field">
@@ -1518,6 +1533,7 @@
               <label for="directJobDescription">Paste Job Description (JD) — Gemini AI will auto-read old resume + JD to
                 generate tailored PDF &amp; AI email body</label>
               <textarea id="directJobDescription" rows="4"
+                oninput="scanPastedJD(this.value)" onkeyup="scanPastedJD(this.value)" onpaste="setTimeout(() => scanPastedJD(this.value), 50)"
                 placeholder="Paste the job description or hiring post here... Gemini 2.5 AI will read your uploaded resume PDF + this JD, build a tailored PDF resume, and draft a custom cover letter email!"></textarea>
             </div>
 
@@ -2356,6 +2372,16 @@ EXTRA-CURRICULARS
       document.getElementById('loaderOverlay').style.display = 'none';
     }
 
+    function setQueryFormat(fmt) {
+      const input = document.getElementById('searchQueryInput');
+      const baseRole = val('jobTitleInput', 'Java developer');
+      if (fmt === 'multi-exclusion') {
+        input.value = `${baseRole} C2C -bench -sales -w2 -fulltime -hotlist`;
+      } else {
+        input.value = `"${baseRole}" full-time -C2C`;
+      }
+    }
+
     function applyQuickPreset(preset) {
       const locSelect = document.getElementById('filterLocation');
       if (locSelect) locSelect.value = preset;
@@ -2463,17 +2489,74 @@ EXTRA-CURRICULARS
       }
     }
 
-    function applyQuickPreset(presetVal) {
-      const select = document.getElementById('filterLocation');
-      if (select) {
-        select.value = presetVal;
-        const selectedOption = select.options[select.selectedIndex];
-        const label = selectedOption ? selectedOption.text : presetVal;
-        const searchConsole = document.getElementById('searchConsole');
-        if (searchConsole) {
-          searchConsole.textContent += `[FILTER PRESET] Applied Workplace/Location Filter: ${label}\n`;
+
+
+    function extractEmails(text = '') {
+      if (!text || typeof text !== 'string') return [];
+      const found = new Set();
+      const directMatches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi) || [];
+      directMatches.forEach(e => {
+        const clean = e.toLowerCase().trim().replace(/[.,:;\/)]+$/, '').replace(/^['"<()]+/, '');
+        if (clean.includes('@') && clean.split('@')[1].includes('.')) found.add(clean);
+      });
+      const obfRegex = /([a-zA-Z0-9._%+-]+)\s*(?:[\(\[\{<]|[\s]+)(?:at|@)(?:[\)\]\}>]|[\s]+)\s*([a-zA-Z0-9.-]+)\s*(?:[\(\[\{<]|[\s]+)(?:dot|\.)(?:[\)\]\}>]|[\s]+)\s*([a-zA-Z]{2,})/gi;
+      let match;
+      while ((match = obfRegex.exec(text)) !== null) {
+        const email = `${match[1]}@${match[2]}.${match[3]}`.toLowerCase();
+        found.add(email);
+      }
+      return Array.from(found);
+    }
+
+    function extractRecruiterName(text = '', recruiterEmail = '', author = '') {
+      if (author && typeof author === 'string') {
+        const cleanAuthor = author.trim();
+        const lowerAuthor = cleanAuthor.toLowerCase();
+        const genericTerms = ['recruiter', 'linkedin recruiter', 'hiring manager', 'hiring team', 'talent acquisition', 'hr team', 'na', 'n/a', 'candidate', 'none', 'null', 'undefined'];
+        if (cleanAuthor && !genericTerms.includes(lowerAuthor)) {
+          return cleanAuthor;
         }
       }
+
+      if (text && typeof text === 'string') {
+        const signaturePatterns = [
+          /(?:thanks\s*(?:&|and)?\s*regards|warm\s*regards|best\s*regards|kind\s*regards|regards|thanks|cheers|sincerely|best|submitted\s*by|posted\s*by|written\s*by|contact|recruiter|hiring\s*manager|reach\s*out\s*to)[,\s\n\r:]+([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){0,3})/i,
+          /(?:posted|shared)\s+by\s+([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){0,3})/i,
+          /([A-Z][a-zA-Z\.\-']*(?:\s+[A-Z][a-zA-Z\.\-']*){1,2})\s*[-–—|]\s*(?:Recruiter|Hiring Manager|Talent Acquisition|HR|Technical Recruiter)/i
+        ];
+        for (const pat of signaturePatterns) {
+          const m = text.match(pat);
+          if (m && m[1]) {
+            const candidateName = m[1].trim();
+            const lowerName = candidateName.toLowerCase();
+            const nonNameWords = ['talent', 'acquisition', 'team', 'recruiter', 'hiring', 'manager', 'company', 'corp', 'inc', 'llc', 'solutions', 'technologies', 'services', 'human', 'resources', 'email', 'contact', 'link', 'post', 'job', 'details'];
+            if (!nonNameWords.some(w => lowerName.includes(w)) && candidateName.length >= 2) {
+              return candidateName;
+            }
+          }
+        }
+      }
+
+      if (recruiterEmail && typeof recruiterEmail === 'string' && recruiterEmail.includes('@')) {
+        const username = recruiterEmail.split('@')[0].trim();
+        const genericEmails = ['hr', 'careers', 'jobs', 'hiring', 'contact', 'info', 'recruitment', 'recruiter', 'sales', 'support', 'admin', 'help', 'office', 'talent', 'apply', 'team', 'work'];
+        if (username && !genericEmails.includes(username.toLowerCase())) {
+          const cleanParts = username
+            .replace(/[^a-zA-Z\s._\-+]/g, '')
+            .split(/[._\-+\s]+/)
+            .filter(part => part.length >= 2);
+
+          if (cleanParts.length > 0) {
+            const formattedWords = cleanParts.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+            const resultName = formattedWords.join(' ');
+            if (resultName.length >= 2) {
+              return resultName;
+            }
+          }
+        }
+      }
+
+      return 'Hiring Team';
     }
 
     // Safe DOM getter to avoid "Cannot read properties of null (reading 'value')"
@@ -2482,9 +2565,26 @@ EXTRA-CURRICULARS
       return (el && el.value !== undefined && el.value !== null && el.value.trim() !== '') ? el.value.trim() : fallback;
     }
 
-    // Auto-scans manually pasted Job Description text for recruiter emails
+    function cleanTypedRecruiterName(inputVal = '') {
+      if (!inputVal || typeof inputVal !== 'string') return;
+      const jdText = val('directJobDescription');
+      const emailVal = val('directRecruiterEmail');
+      const clean = extractRecruiterName(jdText, emailVal, inputVal);
+      if (clean && clean !== 'Hiring Team') {
+        const input = document.getElementById('directRecruiterName');
+        if (input) {
+          input.value = clean;
+          input.style.borderColor = 'var(--accent-emerald)';
+          input.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
+        }
+      }
+    }
+
+    // Auto-scans manually pasted Job Description text for recruiter emails and recruiter name
     function scanPastedJD(text = '', jobId = '') {
-      if (!text || typeof text !== 'string') return;
+      if (!text || typeof text !== 'string') text = '';
+      
+      // 1. Extract Emails
       const foundEmails = extractEmails(text);
       if (foundEmails.length > 0) {
         const inputId = jobId ? `email-input-${jobId}` : 'directRecruiterEmail';
@@ -2494,11 +2594,45 @@ EXTRA-CURRICULARS
           targetInput.style.borderColor = 'var(--accent-emerald)';
           targetInput.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
         }
+        const directEmailInput = document.getElementById('directRecruiterEmail');
+        if (directEmailInput && (!directEmailInput.value || directEmailInput.value === 'candidate@example.com')) {
+          directEmailInput.value = foundEmails.join(', ');
+          directEmailInput.style.borderColor = 'var(--accent-emerald)';
+        }
         if (jobId) {
           const job = scrapedJobs.find(j => String(j.id) === String(jobId));
           if (job) job.recruiterEmails = foundEmails;
         }
-        syncEmailsToComposer();
+        if (typeof syncEmailsToComposer === 'function') {
+          syncEmailsToComposer();
+        }
+      }
+
+      // 2. Extract Recruiter Name
+      const currentNameInput = jobId ? val(`name-input-${jobId}`) : val('directRecruiterName');
+      const currentEmailInput = (foundEmails.length > 0 ? foundEmails[0] : (jobId ? val(`email-input-${jobId}`) : val('directRecruiterEmail')));
+      const extractedName = extractRecruiterName(text, currentEmailInput, currentNameInput);
+      
+      if (extractedName && extractedName !== 'Hiring Team') {
+        const nameInputId = jobId ? `name-input-${jobId}` : 'directRecruiterName';
+        const targetNameInput = document.getElementById(nameInputId);
+        if (targetNameInput) {
+          targetNameInput.value = extractedName;
+          targetNameInput.style.borderColor = 'var(--accent-emerald)';
+          targetNameInput.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
+        }
+        const directNameInput = document.getElementById('directRecruiterName');
+        if (directNameInput && (!directNameInput.value || directNameInput.value === 'Hiring Team')) {
+          directNameInput.value = extractedName;
+          directNameInput.style.borderColor = 'var(--accent-emerald)';
+        }
+        if (jobId) {
+          const job = scrapedJobs.find(j => String(j.id) === String(jobId));
+          if (job) {
+            job.author = extractedName;
+            job.recruiter_name = extractedName;
+          }
+        }
       }
     }
 
@@ -2723,14 +2857,24 @@ EXTRA-CURRICULARS
 
       try {
         const template = val('emailTemplate');
-        const directJob = { author: 'Hiring Manager', title: jobTitle, text: jobPostText, sourceUrl: 'Direct Outreach' };
+        const inputRecruiterName = val('directRecruiterName');
+        const extractedName = extractRecruiterName(jobPostText, recruiterEmail, inputRecruiterName);
+        let jobPostUrl = val('jobPostingLink');
+        if (!jobPostUrl || jobPostUrl === 'Direct Outreach') {
+          jobPostUrl = (jobPostText.match(/https?:\/\/[^\s]+/)?.[0]) || 'https://www.linkedin.com';
+        }
+
+        const directJob = { author: extractedName, recruiter_name: extractedName, title: jobTitle, text: jobPostText, sourceUrl: jobPostUrl, job_post_url: jobPostUrl };
         const bodyText = formatBoilerplateEmail(template, directJob);
 
         const fd = new FormData();
         fd.append('to', recruiterEmail);
         fd.append('candidateName', candName);
+        fd.append('recruiterName', extractedName);
         fd.append('jobTitle', jobTitle);
         fd.append('company', company);
+        fd.append('sourceUrl', jobPostUrl);
+        fd.append('jobPostingLink', jobPostUrl);
         fd.append('message', bodyText);
         fd.append('customiseResume', 'true');
         fd.append('candidateEmail', val('candEmail'));

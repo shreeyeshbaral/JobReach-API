@@ -122,13 +122,9 @@ export async function fetchPublicLinkedInJobsFallback({ role = '', location = ''
         }
 
         const recruiterName = `${item.company} Talent Acquisition`.trim() || 'Hiring Team';
-        let jobUrl = '';
-        if (item.jobId) {
-          jobUrl = `https://www.linkedin.com/jobs/view/${item.jobId}/`;
-        } else if (item.rawLink && item.rawLink.includes('linkedin.com/jobs/view/')) {
-          jobUrl = item.rawLink.split('?')[0];
-        } else {
-          jobUrl = `https://www.linkedin.com/jobs/view/1000${item.i}/`;
+        let jobUrl = (item.rawLink && item.rawLink.startsWith('http')) ? item.rawLink : '';
+        if (!jobUrl) {
+          jobUrl = (fullDescription.match(/https?:\/\/[^\s]+/)?.[0]) || 'https://www.linkedin.com';
         }
 
         posts.push({
@@ -437,24 +433,11 @@ export async function loginAndSearchLinkedIn({ username, password, liAtCookie, k
         ? post.fullCardText 
         : post.text;
 
-      let authorName = post.author ? post.author.split('\n')[0].trim() : '';
-      if (!authorName || authorName.toLowerCase() === 'linkedin recruiter' || authorName.toLowerCase() === 'hiring manager' || authorName.toLowerCase() === 'recruiter') {
-        authorName = 'Hiring Team';
-      }
+      let authorName = extractRecruiterName(fullJobText, combinedEmails[0], post.author);
 
-      let jobId = '';
-      if (post.sourceUrl) {
-        const match = post.sourceUrl.match(/\/view\/(\d+)/) || post.sourceUrl.match(/-(\d+)\/?$/);
-        if (match) jobId = match[1];
-      }
-
-      let validSourceUrl = '';
-      if (jobId) {
-        validSourceUrl = `https://www.linkedin.com/jobs/view/${jobId}/`;
-      } else if (post.sourceUrl && post.sourceUrl.includes('linkedin.com/jobs/view/')) {
-        validSourceUrl = post.sourceUrl.split('?')[0];
-      } else {
-        validSourceUrl = `https://www.linkedin.com/jobs/view/2000${idx}/`;
+      let validSourceUrl = (post.sourceUrl && post.sourceUrl.startsWith('http')) ? post.sourceUrl : '';
+      if (!validSourceUrl) {
+        validSourceUrl = (fullJobText.match(/https?:\/\/[^\s]+/)?.[0]) || 'https://www.linkedin.com';
       }
 
       const firstEmail = combinedEmails.length > 0 ? combinedEmails[0] : null;
