@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Automate LinkedIn job searches, extract recruiter emails, tailor resumes with AI, and batch apply via Gmail API.">
+  <meta name="description"
+    content="Automate LinkedIn job searches, extract recruiter emails, tailor resumes with AI, and batch apply via Gmail API.">
   <title>JobReach — AI Automated Job Application & Outreach Pipeline</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <style>
     /* ═════════════════════════════════════════════════════════════════
@@ -21,7 +25,7 @@
       --glass-border: rgba(255, 255, 255, 0.08);
       --glass-border-hover: rgba(99, 102, 241, 0.4);
       --glass-glow: rgba(99, 102, 241, 0.15);
-      
+
       --primary: #6366f1;
       --primary-hover: #4f46e5;
       --primary-light: #818cf8;
@@ -51,7 +55,9 @@
       --font-mono: 'Fira Code', monospace;
     }
 
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -64,7 +70,7 @@
       line-height: 1.6;
       min-height: 100vh;
       overflow-x: hidden;
-      background-image: 
+      background-image:
         radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
         radial-gradient(circle at 85% 35%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
         radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
@@ -77,7 +83,7 @@
       position: fixed;
       inset: 0;
       background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
@@ -155,8 +161,16 @@
       height: 8px;
       border-radius: 50%;
     }
-    .badge-dot.active { background: var(--success); box-shadow: 0 0 10px var(--success); }
-    .badge-dot.inactive { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+    .badge-dot.active {
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .badge-dot.inactive {
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
 
     /* ═════════════════════════════════════════════════════════════════
        HERO SECTION
@@ -182,8 +196,15 @@
     }
 
     @keyframes pulseGlow {
-      0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
-      50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.4); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+      }
     }
 
     .hero-title {
@@ -333,7 +354,10 @@
     .field {
       margin-bottom: 20px;
     }
-    .field:last-child { margin-bottom: 0; }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
 
     .field-row {
       display: grid;
@@ -368,13 +392,16 @@
       transition: all 0.2s ease;
     }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus,
+    textarea:focus,
+    select:focus {
       border-color: var(--primary-light);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
       background: rgba(10, 13, 20, 0.8);
     }
 
-    input::placeholder, textarea::placeholder {
+    input::placeholder,
+    textarea::placeholder {
       color: var(--text-muted);
     }
 
@@ -416,22 +443,25 @@
       color: #fff;
       box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
     }
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 13px 24px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-heading);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s ease;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
     }
 
-    .btn:active { transform: scale(0.98); }
+    .btn:active {
+      transform: scale(0.98);
+    }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--primary-hover));
@@ -479,7 +509,9 @@
     }
 
     /* Custom File Input */
-    input[type="file"] { display: none; }
+    input[type="file"] {
+      display: none;
+    }
 
     .file-dropzone {
       display: flex;
@@ -522,7 +554,8 @@
       letter-spacing: 0.08em;
     }
 
-    .or-divider::before, .or-divider::after {
+    .or-divider::before,
+    .or-divider::after {
       content: '';
       flex: 1;
       height: 1px;
@@ -554,9 +587,18 @@
       height: 10px;
       border-radius: 50%;
     }
-    .dot-red { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green { background: #27c93f; }
+
+    .dot-red {
+      background: #ff5f56;
+    }
+
+    .dot-yellow {
+      background: #ffbd2e;
+    }
+
+    .dot-green {
+      background: #27c93f;
+    }
 
     .terminal-title {
       font-size: 0.75rem;
@@ -625,7 +667,13 @@
       width: 48px;
       height: 26px;
     }
-    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -635,6 +683,7 @@
       border-radius: 26px;
       border: 1px solid var(--glass-border);
     }
+
     .slider:before {
       position: absolute;
       content: "";
@@ -646,10 +695,12 @@
       transition: .3s;
       border-radius: 50%;
     }
-    input:checked + .slider {
+
+    input:checked+.slider {
       background-color: var(--primary);
     }
-    input:checked + .slider:before {
+
+    input:checked+.slider:before {
       transform: translateX(22px);
     }
 
@@ -664,11 +715,20 @@
       animation: fadeInSlide 0.3s ease;
     }
 
-    .profile-drawer.open { display: block; }
+    .profile-drawer.open {
+      display: block;
+    }
 
     @keyframes fadeInSlide {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .drawer-title {
@@ -729,7 +789,10 @@
       cursor: pointer;
     }
 
-    .job-body { flex: 1; min-width: 0; }
+    .job-body {
+      flex: 1;
+      min-width: 0;
+    }
 
     .job-top {
       display: flex;
@@ -754,10 +817,30 @@
       letter-spacing: 0.05em;
     }
 
-    .status-pill.pending { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .status-pill.sending { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); border: 1px solid var(--primary-glow); animation: pulse 1.5s infinite; }
-    .status-pill.success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .status-pill.failed { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status-pill.pending {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-pill.sending {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      border: 1px solid var(--primary-glow);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-pill.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-pill.failed {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
 
     .job-meta {
       display: flex;
@@ -771,7 +854,10 @@
       color: var(--primary-light);
       text-decoration: none;
     }
-    .job-meta a:hover { text-decoration: underline; }
+
+    .job-meta a:hover {
+      text-decoration: underline;
+    }
 
     .job-snippet {
       font-size: 0.85rem;
@@ -839,7 +925,11 @@
       animation: spin 0.8s linear infinite;
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     .overlay-label {
       font-family: var(--font-heading);
@@ -916,21 +1006,35 @@
 
     /* Responsive adjustments */
     @media (max-width: 868px) {
-      .pipeline-grid, .stats-bar { grid-template-columns: 1fr; }
-      .hero-title { font-size: 2.2rem; }
-      .field-row { grid-template-columns: 1fr; }
+
+      .pipeline-grid,
+      .stats-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-title {
+        font-size: 2.2rem;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
-    
+
     <!-- ═══ NAVBAR ═══ -->
     <nav class="navbar">
       <a href="#" class="nav-brand">
         <div class="brand-logo">
-          <svg viewBox="0 0 24 24"><path d="M20,6C20.58,6 21.05,6.2 21.42,6.59C21.8,7 22,7.45 22,8V19C22,19.55 21.8,20 21.42,20.41C21.05,20.8 20.58,21 20,21H4C3.42,21 2.95,20.8 2.58,20.41C2.2,20 2,19.55 2,19V8C2,7.45 2.2,7 2.58,6.59C2.95,6.2 3.42,6 4,6H8V4C8,3.42 8.2,2.95 8.58,2.58C8.95,2.2 9.42,2 10,2H14C14.58,2 15.05,2.2 15.42,2.58C15.8,2.95 16,3.42 16,4V6H20M4,8V19H20V8H4M14,6V4H10V6H14Z"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M20,6C20.58,6 21.05,6.2 21.42,6.59C21.8,7 22,7.45 22,8V19C22,19.55 21.8,20 21.42,20.41C21.05,20.8 20.58,21 20,21H4C3.42,21 2.95,20.8 2.58,20.41C2.2,20 2,19.55 2,19V8C2,7.45 2.2,7 2.58,6.59C2.95,6.2 3.42,6 4,6H8V4C8,3.42 8.2,2.95 8.58,2.58C8.95,2.2 9.42,2 10,2H14C14.58,2 15.05,2.2 15.42,2.58C15.8,2.95 16,3.42 16,4V6H20M4,8V19H20V8H4M14,6V4H10V6H14Z" />
+          </svg>
         </div>
         <span class="brand-name">JobReach AI</span>
       </a>
@@ -948,7 +1052,8 @@
       </div>
       <h1 class="hero-title">Scrape. Customise. Apply.<br>Land Interviews Faster.</h1>
       <p class="hero-subtitle">
-        Automate LinkedIn post scraping, extract hidden recruiter emails, auto-generate tailored PDF resumes per post, and batch send formal applications directly via Gmail API.
+        Automate LinkedIn post scraping, extract hidden recruiter emails, auto-generate tailored PDF resumes per post,
+        and batch send formal applications directly via Gmail API.
       </p>
     </header>
 
@@ -977,14 +1082,15 @@
 
       <!-- ROW 1: AUTH & GMAIL INTEGRATION -->
       <div class="pipeline-grid">
-        
+
         <!-- STEP 1: LINKEDIN AUTH -->
         <section class="glass-card" id="card-step1">
           <div class="card-header">
             <span class="step-badge">1</span>
             <h2 class="card-title">LinkedIn Authentication</h2>
           </div>
-          <p class="card-desc">Session cookie (li_at) or credentials enable deep feed search (Optional: leave empty to use Public Scraper Fallback).</p>
+          <p class="card-desc">Session cookie (li_at) or credentials enable deep feed search (Optional: leave empty to
+            use Public Scraper Fallback).</p>
 
           <div class="field">
             <label for="liAtCookie">Session Cookie (li_at)</label>
@@ -1015,12 +1121,16 @@
 
           <div class="field">
             <button class="btn btn-outline" id="btnConnectGmail" onclick="connectGmail()">
-              <svg viewBox="0 0 24 24"><path d="M20,18H18V8.25L12,13L6,8.25V18H4V6H5.2L12,11.25L18.8,6H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M20,18H18V8.25L12,13L6,8.25V18H4V6H5.2L12,11.25L18.8,6H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
+              </svg>
               Connect / Re-authenticate Gmail
             </button>
           </div>
 
-          <div style="margin-top: 18px; padding: 14px; background: rgba(10, 13, 20, 0.5); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+          <div
+            style="margin-top: 18px; padding: 14px; background: rgba(10, 13, 20, 0.5); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.85rem; color: var(--text-secondary);">OAuth Connection Status</span>
             <span id="gmailStatus" class="nav-badge">
               <span class="badge-dot inactive"></span> Disconnected
@@ -1036,37 +1146,90 @@
           <span class="step-badge">2</span>
           <h2 class="card-title">Search &amp; Filter LinkedIn Posts</h2>
         </div>
-        <p class="card-desc">Type your search query using Google-style format to pinpoint recruiter hiring posts. Use quotes for exact titles, minus to exclude terms.</p>
+        <p class="card-desc">Type your search query using Google-style format to pinpoint recruiter hiring posts. Use
+          quotes for exact titles, minus to exclude terms.</p>
 
         <!-- MANUAL SEARCH QUERY INPUT -->
         <div class="field">
           <label for="searchQueryInput">Search Query (Manual Format)</label>
-          <input type="text" id="searchQueryInput" value='"Software Engineer" full-time -C2C' placeholder='"Job Title" full-time -C2C'>
-          <div class="search-hint">Format: <strong>"Job title"</strong> full-time -C2C &nbsp;|&nbsp; Use quotes for exact match, minus (-) to exclude terms</div>
+          <input type="text" id="searchQueryInput" value='"Software Engineer" full-time -C2C'
+            placeholder='"Job Title" full-time -C2C'>
+          <div class="search-hint">Format: <strong>"Job title"</strong> full-time -C2C &nbsp;|&nbsp; Use quotes for
+            exact match, minus (-) to exclude terms</div>
         </div>
 
-        <div class="field" style="margin-top: 16px;">
-          <label for="filterTimeWindow">Date Posted Filter</label>
-          <select id="filterTimeWindow">
-            <option value="past-24h" selected>Past 24 Hours</option>
-            <option value="past-week">Past 7 Days</option>
-          </select>
+        <div class="field-row" style="margin-top: 16px;">
+          <div class="field">
+            <label for="filterLocation">Target Region / Job Location &amp; Workplace Filter</label>
+            <select id="filterLocation">
+              <option value="all" selected>🌍 All Jobs &amp; Locations (Global)</option>
+              <optgroup label="🏠 Workplace Type (Global)">
+                <option value="remote">🏠 Remote Jobs Only</option>
+                <option value="onsite">🏢 On-Site Jobs Only</option>
+                <option value="hybrid">🔀 Hybrid Jobs Only</option>
+              </optgroup>
+              <optgroup label="🇺🇸 United States">
+                <option value="us-remote">🇺🇸 US Remote Jobs</option>
+                <option value="us-onsite">🇺🇸 US On-Site Jobs</option>
+                <option value="us-hybrid">🇺🇸 US Hybrid Jobs</option>
+                <option value="us-all">🇺🇸 US All Jobs (Remote, On-Site &amp; Hybrid)</option>
+              </optgroup>
+              <optgroup label="🇮🇳 India">
+                <option value="india-remote">🇮🇳 India Remote Jobs</option>
+                <option value="india-onsite">🇮🇳 India On-Site Jobs</option>
+                <option value="india-hybrid">🇮🇳 India Hybrid Jobs</option>
+                <option value="india-all">🇮🇳 India All Jobs (Remote, On-Site &amp; Hybrid)</option>
+              </optgroup>
+              <optgroup label="🌐 Global">
+                <option value="global-remote">🌐 Global Remote Jobs Only</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterTimeWindow">Date Posted Filter</label>
+            <select id="filterTimeWindow">
+              <option value="past-24h" selected>Past 24 Hours</option>
+              <option value="past-week">Past 7 Days</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- QUICK PRESET CHIPS -->
+        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Quick Job Filters:</span>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('all')">🌐 All Jobs</button>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('remote')">🏠 Remote Only</button>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('onsite')">🏢 On-Site Only</button>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('hybrid')">🔀 Hybrid Only</button>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('us-remote')">🇺🇸 US Remote</button>
+          <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px;" onclick="applyQuickPreset('india-remote')">🇮🇳 India Remote</button>
         </div>
 
         <!-- SUBMIT & DIRECT LINKEDIN BUTTONS -->
         <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-          <button class="btn btn-success" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700;" onclick="run1ClickAutomation()">
-            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+          <button class="btn btn-success"
+            style="flex: 1; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700;"
+            onclick="run1ClickAutomation()">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;">
+              <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+            </svg>
             ▶ Launch 1-Click Full Automation
           </button>
 
           <button class="btn btn-primary" style="flex: 1;" onclick="startLinkedInSearch()">
-            <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+            </svg>
             Scrape Only (Live Browser)
           </button>
 
           <button class="btn btn-outline" style="flex: 1;" onclick="openDirectLinkedInSearch()">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/></svg>
+            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
+              <path
+                d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" />
+            </svg>
             Direct LinkedIn ↗
           </button>
         </div>
@@ -1078,232 +1241,293 @@
             <span class="terminal-dot dot-green"></span>
             <span class="terminal-title">scraper.log — Puppeteer Terminal</span>
           </div>
-          <pre id="searchConsole" class="terminal-console">Ready to search. Enter your LinkedIn cookie and query above.</pre>
+          <pre id="searchConsole"
+            class="terminal-console">Ready to search. Enter your LinkedIn cookie and query above.</pre>
         </div>
-      <!-- MANUAL RESUME TYPING & GEMINI AUTO-GENERATOR -->
-      <section class="glass-card" id="card-manual-resume" style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.7));">
-        <div class="card-header" style="justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="step-badge" style="background: linear-gradient(135deg, var(--primary), var(--accent-pink));">✍️</span>
-            <div>
-              <h2 class="card-title">Manual Resume Typing &amp; Gemini Auto-Generator</h2>
-              <p class="card-desc" style="margin-bottom: 0;">Type your resume details manually or use the template. Gemini AI will structure it perfectly and tailor <strong>ONLY Technical Skills</strong> when applying for jobs.</p>
+        <!-- MANUAL RESUME TYPING & GEMINI AUTO-GENERATOR -->
+        <section class="glass-card" id="card-manual-resume"
+          style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.7));">
+          <div class="card-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="step-badge"
+                style="background: linear-gradient(135deg, var(--primary), var(--accent-pink));">✍️</span>
+              <div>
+                <h2 class="card-title">Manual Resume Typing &amp; Gemini Auto-Generator</h2>
+                <p class="card-desc" style="margin-bottom: 0;">Type your resume details manually or use the template.
+                  Gemini AI will structure it perfectly and tailor <strong>ONLY Technical Skills</strong> when applying
+                  for jobs.</p>
+              </div>
             </div>
-          </div>
-          <button type="button" class="btn btn-outline" style="font-size: 0.82rem; padding: 8px 14px;" onclick="prefillSampleResume()">
-            📋 Pre-fill Sample Resume (Shreeyesh Baral)
-          </button>
-        </div>
-
-        <!-- HIGHLIGHT NOTICE -->
-        <div style="margin-top: 16px; margin-bottom: 20px; padding: 12px 16px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: var(--radius-sm); font-size: 0.85rem; color: #a5b4fc; display: flex; align-items: center; gap: 10px;">
-          <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
-          <span><strong>Job Application Rule Active:</strong> While applying for jobs, Gemini will make changes <strong>ONLY to Technical Skills</strong> according to the Job Description. Header, PROJECTS, EDUCATION, CERTIFICATIONS, and EXTRA-CURRICULARS remain 100% unchanged!</span>
-        </div>
-
-        <!-- MANUAL INPUT TEXTAREA -->
-        <div class="field">
-          <label for="manualResumeInput" style="font-weight: 700; color: var(--text-main);">Type / Edit Resume Details Below:</label>
-          <textarea id="manualResumeInput" rows="12" style="font-family: var(--font-mono); font-size: 0.85rem; background: rgba(10, 13, 20, 0.8); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: #e2e8f0; padding: 14px; line-height: 1.6;" placeholder="Type your resume details here (Name, Contact, Projects, Education, Certifications, Technical Skills, Extracurriculars)... Or click 'Pre-fill Sample Resume' above!"></textarea>
-        </div>
-
-        <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
-          <button type="button" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary), var(--accent-pink)); font-weight: 700;" onclick="generateResumeWithGemini()">
-            ✨ Auto-Generate Resume with Gemini
-          </button>
-          <button type="button" class="btn btn-outline" onclick="previewManualResumePDF()">
-            👁️ Preview AI Generated PDF Resume
-          </button>
-        </div>
-
-        <!-- LIVE GENERATED RESUME PREVIEW CONTAINER -->
-        <div id="generatedResumeContainer" style="display: none; margin-top: 24px; padding: 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--accent-emerald); border-radius: var(--radius-md);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <span style="font-family: var(--font-heading); font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 8px;">
-              <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/></svg>
-              Gemini Auto-Generated Resume Format (Live Preview)
-            </span>
-            <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3);">
-              ✓ Active Resume Profile
-            </span>
+            <button type="button" class="btn btn-outline" style="font-size: 0.82rem; padding: 8px 14px;"
+              onclick="prefillSampleResume()">
+              📋 Pre-fill Sample Resume (Shreeyesh Baral)
+            </button>
+            <button type="button" class="btn btn-outline" style="font-size: 0.82rem; padding: 8px 14px; border-color: rgba(239, 68, 68, 0.4); color: #f87171;"
+              onclick="clearSavedProfile()">
+              🗑️ Clear Saved Profile
+            </button>
           </div>
 
-          <pre id="formattedMarkdownPreview" style="font-family: var(--font-mono); font-size: 0.82rem; color: #cbd5e1; background: #06090f; padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); white-space: pre-wrap; max-height: 320px; overflow-y: auto;"></pre>
-        </div>
-      </section>
-
-      <!-- STEP 4: BATCH APPLY & TAILOR RESUME -->
-      <section class="glass-card" id="card-step4">
-        <div class="card-header">
-          <span class="step-badge">4</span>
-          <h2 class="card-title">Apply &amp; Batch Send Emails</h2>
-        </div>
-        <p class="card-desc">Configure application defaults, enable AI resume customisation, and send applications to scraped recruiters.</p>
-
-        <!-- Basic details -->
-        <div class="field-row">
-            <div class="field">
-            <label for="candName">Candidate Full Name</label>
-            <input type="text" id="candName" value="" placeholder="e.g. Candidate Full Name (Auto-filled from uploaded PDF)">
+          <!-- HIGHLIGHT NOTICE -->
+          <div
+            style="margin-top: 16px; margin-bottom: 20px; padding: 12px 16px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: var(--radius-sm); font-size: 0.85rem; color: #a5b4fc; display: flex; align-items: center; gap: 10px;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;">
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
+            </svg>
+            <span><strong>Job Application Rule Active:</strong> While applying for jobs, Gemini will make changes
+              <strong>ONLY to Technical Skills</strong> according to the Job Description. Header, PROJECTS, EDUCATION,
+              CERTIFICATIONS, and EXTRA-CURRICULARS remain 100% unchanged!</span>
           </div>
+
+          <!-- MANUAL INPUT TEXTAREA -->
           <div class="field">
-            <label for="jobTitleInput">Target Job Title</label>
-            <input type="text" id="jobTitleInput" value="" placeholder="e.g. Software Engineer / Java Developer">
+            <label for="manualResumeInput" style="font-weight: 700; color: var(--text-main);">Type / Edit Resume Details
+              Below:</label>
+            <textarea id="manualResumeInput" rows="12"
+              style="font-family: var(--font-mono); font-size: 0.85rem; background: rgba(10, 13, 20, 0.8); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: #e2e8f0; padding: 14px; line-height: 1.6;"
+              placeholder="Type your resume details here (Name, Contact, Projects, Education, Certifications, Technical Skills, Extracurriculars)... Or click 'Pre-fill Sample Resume' above!"></textarea>
           </div>
-        </div>
 
-        <!-- RESUME UPLOAD (ALWAYS VISIBLE — Primary Input) -->
-        <div class="field" style="margin-bottom: 24px;">
-          <label>⬆️ Upload Your Resume (PDF/DOCX) — Required for AI tailoring</label>
-          <label for="resumeFile" class="file-dropzone" id="resumeLabel">
-            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/></svg>
-            <span>Upload your existing resume PDF — Gemini AI will read and modify it…</span>
-          </label>
-          <input type="file" id="resumeFile" accept=".pdf,.docx" onchange="fileSelected(this); uploadAndParseResume();">
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="companyInput">Company Name (Optional)</label>
-            <input type="text" id="companyInput" placeholder="Hiring Company">
+          <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary"
+              style="background: linear-gradient(135deg, var(--primary), var(--accent-pink)); font-weight: 700;"
+              onclick="generateResumeWithGemini()">
+              ✨ Auto-Generate Resume with Gemini
+            </button>
+            <button type="button" class="btn btn-outline" onclick="previewManualResumePDF()">
+              👁️ Preview AI Generated PDF Resume
+            </button>
           </div>
-        </div>
 
-        <!-- AI RESUME CUSTOMIZATION TOGGLE -->
-        <div class="toggle-card">
-          <div class="toggle-info">
-            <span class="ai-pill">Gemini 2.5 AI</span>
-            <div>
-              <div class="toggle-title">AI Tailor Uploaded Resume Per Job</div>
-              <div class="toggle-sub">Reads your uploaded resume PDF + LinkedIn JD to modify and tailor it (keeps same structure, only adjusts wording)</div>
+          <!-- LIVE GENERATED RESUME PREVIEW CONTAINER -->
+          <div id="generatedResumeContainer"
+            style="display: none; margin-top: 24px; padding: 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--accent-emerald); border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+              <span
+                style="font-family: var(--font-heading); font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;">
+                  <path
+                    d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z" />
+                </svg>
+                Gemini Auto-Generated Resume Format (Live Preview)
+              </span>
+              <span class="nav-badge"
+                style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3);">
+                ✓ Active Resume Profile
+              </span>
             </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="customiseToggle" checked onchange="toggleCustomise(this.checked)">
-            <span class="slider"></span>
-          </label>
-        </div>
 
-        <!-- PROFILE DRAWER FOR RESUME GENERATOR -->
-        <div class="profile-drawer" id="profilePanel">
-          <div class="drawer-title">
-            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
-            Candidate Profile (Auto-filled from Uploaded Resume PDF)
+            <pre id="formattedMarkdownPreview"
+              style="font-family: var(--font-mono); font-size: 0.82rem; color: #cbd5e1; background: #06090f; padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); white-space: pre-wrap; max-height: 320px; overflow-y: auto;"></pre>
           </div>
+        </section>
 
+        <!-- STEP 4: BATCH APPLY & TAILOR RESUME -->
+        <section class="glass-card" id="card-step4">
+          <div class="card-header">
+            <span class="step-badge">4</span>
+            <h2 class="card-title">Apply &amp; Batch Send Emails</h2>
+          </div>
+          <p class="card-desc">Configure application defaults, enable AI resume customisation, and send applications to
+            scraped recruiters.</p>
+
+          <!-- Basic details -->
           <div class="field-row">
             <div class="field">
-              <label for="candEmail">Contact Email</label>
-              <input type="email" id="candEmail" value="" placeholder="e.g. candidate@email.com">
+              <label for="candName">Candidate Full Name</label>
+              <input type="text" id="candName" value=""
+                placeholder="e.g. Candidate Full Name (Auto-filled from uploaded PDF)">
             </div>
             <div class="field">
-              <label for="candPhone">Contact Phone</label>
-              <input type="text" id="candPhone" value="" placeholder="e.g. (555) 123-4567">
+              <label for="jobTitleInput">Target Job Title</label>
+              <input type="text" id="jobTitleInput" value="" placeholder="e.g. Software Engineer / Java Developer">
             </div>
+          </div>
+
+          <!-- RESUME UPLOAD (ALWAYS VISIBLE — Primary Input) -->
+          <div class="field" style="margin-bottom: 24px;">
+            <label>⬆️ Upload Your Resume (PDF/DOCX) — Required for AI tailoring</label>
+            <label for="resumeFile" class="file-dropzone" id="resumeLabel">
+              <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;">
+                <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
+              </svg>
+              <span>Upload your existing resume PDF — Gemini AI will read and modify it…</span>
+            </label>
+            <input type="file" id="resumeFile" accept=".pdf,.docx"
+              onchange="fileSelected(this); uploadAndParseResume();">
+          </div>
+
+          <div class="field" style="margin-bottom: 16px;">
+            <label for="companyInput">Company Name (Optional)</label>
+            <input type="text" id="companyInput" placeholder="e.g. Acme Corp / Hiring Company">
           </div>
 
           <div class="field-row">
             <div class="field">
               <label for="candLinkedin">LinkedIn Profile URL</label>
-              <input type="text" id="candLinkedin" value="" placeholder="https://www.linkedin.com/in/username">
+              <input type="text" id="candLinkedin" value="" placeholder="https://www.linkedin.com/in/username"
+                oninput="updateComposerBody()">
             </div>
+            <div class="field">
+              <label for="candGithub">GitHub Profile URL</label>
+              <input type="text" id="candGithub" value="" placeholder="https://github.com/username"
+                oninput="updateComposerBody()">
+            </div>
+          </div>
+
+          <!-- AI RESUME CUSTOMIZATION TOGGLE -->
+          <div class="toggle-card">
+            <div class="toggle-info">
+              <span class="ai-pill">Gemini 2.5 AI</span>
+              <div>
+                <div class="toggle-title">AI Tailor Uploaded Resume Per Job</div>
+                <div class="toggle-sub">Reads your uploaded resume PDF + LinkedIn JD to modify and tailor it (keeps same
+                  structure, only adjusts wording)</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="customiseToggle" checked onchange="toggleCustomise(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- PROFILE DRAWER FOR RESUME GENERATOR -->
+          <div class="profile-drawer" id="profilePanel">
+            <div class="drawer-title">
+              <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;">
+                <path
+                  d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+              </svg>
+              Candidate Profile (Auto-filled from Uploaded Resume PDF)
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="candEmail">Contact Email</label>
+                <input type="email" id="candEmail" value="" placeholder="e.g. candidate@email.com">
+              </div>
+              <div class="field">
+                <label for="candPhone">Contact Phone</label>
+                <input type="text" id="candPhone" value="" placeholder="e.g. (555) 123-4567">
+              </div>
+            </div>
+
             <div class="field">
               <label for="candLocation">Current Location</label>
               <input type="text" id="candLocation" value="" placeholder="City, State Zip">
             </div>
-          </div>
 
-          <div class="field-row">
+            <div class="field-row">
+              <div class="field">
+                <label for="candRelocation">Relocation Status</label>
+                <input type="text" id="candRelocation" value="Yes" placeholder="Yes / No">
+              </div>
+              <div class="field">
+                <label for="candVisa">Work Authorization</label>
+                <input type="text" id="candVisa" value="" placeholder="STEM OPT / USC / GC / H1B">
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="candAvailability">Availability</label>
+                <input type="text" id="candAvailability" value="Immediate" placeholder="Immediate / 2 Weeks">
+              </div>
+              <div class="field">
+                <label for="candExperienceYears">Total Experience</label>
+                <input type="text" id="candExperienceYears" value="" placeholder="e.g. 5+ Years">
+              </div>
+            </div>
+
             <div class="field">
-              <label for="candRelocation">Relocation Status</label>
-              <input type="text" id="candRelocation" value="Yes" placeholder="Yes / No">
+              <label for="candSalary">Expected Salary / Engagement</label>
+              <input type="text" id="candSalary" value="C2C only (discuss with employer)"
+                placeholder="C2C only (discuss with employer)">
+            </div>
+
+            <div class="field">
+              <label for="candSummary">Professional Summary</label>
+              <textarea id="candSummary" rows="3"
+                placeholder="Experienced Software Engineer with expertise in building scalable web applications and microservices…"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="candSkills">Core Technical Skills (comma-separated)</label>
+              <input type="text" id="candSkills" placeholder="Java, Python, React, .NET, AWS, SQL, Microservices">
+            </div>
+
+            <div class="field">
+              <label for="candExperience">💼 Work Experience Details (Auto-filled from resume PDF)</label>
+              <textarea id="candExperience" rows="4"
+                placeholder="Companies, Job Titles, Employment Dates, Accomplishments & Bullet points..."></textarea>
+            </div>
+
+            <div class="field">
+              <label for="candEducation">🎓 Educational Qualifications (Auto-filled from resume PDF)</label>
+              <textarea id="candEducation" rows="3"
+                placeholder="Degree, Major, University/College Name, Graduation Year..."></textarea>
             </div>
             <div class="field">
-              <label for="candVisa">Work Authorization</label>
-              <input type="text" id="candVisa" value="" placeholder="STEM OPT / USC / GC / H1B">
+              <label for="candCertifications">📜 Certifications & Credentials (Auto-filled from resume PDF)</label>
+              <textarea id="candCertifications" rows="2"
+                placeholder="AWS Certified Developer, PMP, Oracle Java Certified, etc..."></textarea>
             </div>
-          </div>
 
-          <div class="field-row">
             <div class="field">
-              <label for="candAvailability">Availability</label>
-              <input type="text" id="candAvailability" value="Immediate" placeholder="Immediate / 2 Weeks">
+              <label for="candExtracurriculars">🏆 Extracurricular Activities, Projects & Honors (Auto-filled from
+                resume PDF)</label>
+              <textarea id="candExtracurriculars" rows="2"
+                placeholder="Leadership roles, hackathon wins, open source projects, volunteer work..."></textarea>
             </div>
+
+            <div style="margin-top: 16px;">
+              <button type="button" class="btn btn-outline" onclick="previewGeneratedResume()">
+                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
+                  <path
+                    d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17Z" />
+                </svg>
+                Preview AI Generated PDF Resume
+              </button>
+            </div>
+          </div>
+
+          <!-- DIRECT RECRUITER EMAIL & PASTED JD SECTION -->
+          <div
+            style="background: rgba(10, 13, 20, 0.6); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 20px; margin-top: 20px; margin-bottom: 24px;">
+            <h3 class="card-title"
+              style="font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--primary-light);">
+                <path
+                  d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z" />
+              </svg>
+              Direct Recruiter Outreach &amp; JD Studio
+            </h3>
+
             <div class="field">
-              <label for="candExperienceYears">Total Experience</label>
-              <input type="text" id="candExperienceYears" value="" placeholder="e.g. 5+ Years">
+              <label for="directRecruiterEmail">Recruiter Email Address (Direct Send)</label>
+              <input type="email" id="directRecruiterEmail" placeholder="e.g. recruiter@company.com">
             </div>
-          </div>
 
-          <div class="field">
-            <label for="candSalary">Expected Salary / Engagement</label>
-            <input type="text" id="candSalary" value="C2C only (discuss with employer)" placeholder="C2C only (discuss with employer)">
-          </div>
+            <div class="field">
+              <label for="directJobDescription">Paste Job Description (JD) — Gemini AI will auto-read old resume + JD to
+                generate tailored PDF &amp; AI email body</label>
+              <textarea id="directJobDescription" rows="4"
+                placeholder="Paste the job description or hiring post here... Gemini 2.5 AI will read your uploaded resume PDF + this JD, build a tailored PDF resume, and draft a custom cover letter email!"></textarea>
+            </div>
 
-          <div class="field">
-            <label for="candSummary">Professional Summary</label>
-            <textarea id="candSummary" rows="3" placeholder="Experienced Software Engineer with expertise in building scalable web applications and microservices…"></textarea>
-          </div>
-
-          <div class="field">
-            <label for="candSkills">Core Technical Skills (comma-separated)</label>
-            <input type="text" id="candSkills" placeholder="Java, Python, React, .NET, AWS, SQL, Microservices">
-          </div>
-
-          <div class="field">
-            <label for="candExperience">💼 Work Experience Details (Auto-filled from resume PDF)</label>
-            <textarea id="candExperience" rows="4" placeholder="Companies, Job Titles, Employment Dates, Accomplishments & Bullet points..."></textarea>
-          </div>
-
-          <div class="field">
-            <label for="candEducation">🎓 Educational Qualifications (Auto-filled from resume PDF)</label>
-            <textarea id="candEducation" rows="3" placeholder="Degree, Major, University/College Name, Graduation Year..."></textarea>
-          </div>
-          <div class="field">
-            <label for="candCertifications">📜 Certifications & Credentials (Auto-filled from resume PDF)</label>
-            <textarea id="candCertifications" rows="2" placeholder="AWS Certified Developer, PMP, Oracle Java Certified, etc..."></textarea>
-          </div>
-
-          <div class="field">
-            <label for="candExtracurriculars">🏆 Extracurricular Activities, Projects & Honors (Auto-filled from resume PDF)</label>
-            <textarea id="candExtracurriculars" rows="2" placeholder="Leadership roles, hackathon wins, open source projects, volunteer work..."></textarea>
-          </div>
-
-          <div style="margin-top: 16px;">
-            <button type="button" class="btn btn-outline" onclick="previewGeneratedResume()">
-              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17Z"/></svg>
-              Preview AI Generated PDF Resume
+            <button type="button" class="btn btn-primary" onclick="sendDirectAIApplication()">
+              <svg viewBox="0 0 24 24">
+                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+              </svg>
+              ⚡ Generate AI Resume &amp; Send Direct Application
             </button>
           </div>
-        </div>
 
-        <!-- DIRECT RECRUITER EMAIL & PASTED JD SECTION -->
-        <div style="background: rgba(10, 13, 20, 0.6); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 20px; margin-top: 20px; margin-bottom: 24px;">
-          <h3 class="card-title" style="font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--primary-light);"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
-            Direct Recruiter Outreach &amp; JD Studio
-          </h3>
-
+          <!-- Cover Letter Template (Fallback / Custom) -->
           <div class="field">
-            <label for="directRecruiterEmail">Recruiter Email Address (Direct Send)</label>
-            <input type="email" id="directRecruiterEmail" placeholder="e.g. recruiter@company.com">
-          </div>
-
-          <div class="field">
-            <label for="directJobDescription">Paste Job Description (JD) — Gemini AI will auto-read old resume + JD to generate tailored PDF &amp; AI email body</label>
-            <textarea id="directJobDescription" rows="4" placeholder="Paste the job description or hiring post here... Gemini 2.5 AI will read your uploaded resume PDF + this JD, build a tailored PDF resume, and draft a custom cover letter email!"></textarea>
-          </div>
-
-          <button type="button" class="btn btn-primary" onclick="sendDirectAIApplication()">
-            <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
-            ⚡ Generate AI Resume &amp; Send Direct Application
-          </button>
-        </div>
-
-        <!-- Cover Letter Template (Fallback / Custom) -->
-        <div class="field">
-          <label for="emailTemplate">Cover Letter Email Body (Boilerplate Template)</label>
-          <textarea id="emailTemplate" rows="14">Dear [Recruiter Name],
+            <label for="emailTemplate">Cover Letter Email Body (Boilerplate Template)</label>
+            <textarea id="emailTemplate" rows="14">Dear [Recruiter Name],
 
 I hope this email finds you well.
 
@@ -1314,95 +1538,7 @@ Here is a summary of my profile for your quick review:
 - Email Address: [Candidate Email]
 - Phone Number: [Candidate Phone]
 - LinkedIn Profile: [Candidate LinkedIn Profile]
-- Current Location: [Current Location]
-- Relocation Status: [Relocation Status]
-- Work Authorization: [Work Authorization]
-- Availability: [Availability]
-- Total Experience: [Total Experience]
-- Expected Salary: [Expected Salary]
-
-Below are the details of the post I am applying to:
-- LinkedIn Post URL: [Job Source URL]
------------------------------------------
-Job Post Description:
-[Job Post Description]
------------------------------------------
-
-I would appreciate the chance to discuss how my experience aligns with your requirements. Thank you for your time and consideration.
-
-Best regards,
-[Candidate Name]</textarea>
-        </div>
-
-        <!-- MATCHED JOBS LIST -->
-        <div class="job-list-wrapper">
-          <div class="section-title-row">
-            <h3 class="card-title" style="font-size: 1.1rem;">Scraped Job Postings</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);" id="jobListSub">Run search to populate</span>
-          </div>
-
-          <div class="job-list" id="jobList">
-            <div class="empty-msg">No job posts scraped yet — click "Start Scraper" in Step 2 above.</div>
-          </div>
-        </div>
-
-        <!-- Batch Apply Button -->
-        <div style="margin-top: 24px;">
-          <button class="btn btn-success" id="btnBatchApply" onclick="executeBatchApply()" disabled>
-            <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
-            Send Applications to Selected Recruiters
-          </button>
-        </div>
-
-        <div class="terminal-box" style="margin-top: 20px;">
-          <div class="terminal-header">
-            <span class="terminal-dot dot-red"></span>
-            <span class="terminal-dot dot-yellow"></span>
-            <span class="terminal-dot dot-green"></span>
-            <span class="terminal-title">outreach.log — Gmail Application Activity</span>
-          </div>
-          <pre id="emailConsole" class="terminal-console">No emails sent yet.</pre>
-        </div>
-      </section>
-
-      <!-- ═══ STEP 5: EMAIL COMPOSER ═══ -->
-      <section class="glass-card email-composer" id="card-step5">
-        <div class="card-header">
-          <span class="step-badge" style="background: linear-gradient(135deg, var(--accent-emerald), #059669);">5</span>
-          <h2 class="card-title">📧 Email Composer — Send to All Recruiters</h2>
-        </div>
-        <p class="card-desc">All scraped recruiter emails are auto-populated below. Review the email, edit if needed, and send to all recruiters at once.</p>
-
-        <div class="composer-fields">
-          <!-- TO FIELD -->
-          <div class="field">
-            <label for="composerTo" style="display: flex; justify-content: space-between; align-items: center;">
-              <span>To: (Recruiter Emails — auto-updated by scraper)</span>
-              <span class="composer-email-count" id="composerEmailCount">0 emails</span>
-            </label>
-            <textarea id="composerTo" class="composer-to-field" rows="2" placeholder="Emails will auto-populate after scraping... You can also type emails manually (comma-separated)"></textarea>
-          </div>
-
-          <!-- SUBJECT -->
-          <div class="field">
-            <label for="composerSubject">Subject</label>
-            <input type="text" id="composerSubject" placeholder="Application for [Job Title] - [Candidate Name]">
-          </div>
-
-          <!-- BODY -->
-          <div class="field">
-            <label for="composerBody">Email Body (Boilerplate Format)</label>
-            <textarea id="composerBody" rows="14">Dear [Recruiter Name],
-
-I hope this email finds you well.
-
-I saw your recent hiring post on LinkedIn regarding a [Job Title] opportunity and would like to submit my application for this role. I have attached my resume to this email for your review.
-
-Here is a summary of my profile for your quick review:
-- Candidate Full Name: [Candidate Name]
-- Email Address: [Candidate Email]
-- Phone Number: [Candidate Phone]
-- LinkedIn Profile: [Candidate LinkedIn Profile]
+- GitHub Profile: [Candidate GitHub Profile]
 - Current Location: [Current Location]
 - Relocation Status: [Relocation Status]
 - Work Authorization: [Work Authorization]
@@ -1423,76 +1559,198 @@ Best regards,
 [Candidate Name]</textarea>
           </div>
 
-          <!-- ATTACHMENT INDICATOR -->
-          <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(10, 13, 20, 0.5); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--text-muted);"><path d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z"/></svg>
-            <span id="composerAttachment" style="font-size: 0.85rem; color: var(--text-secondary);">No resume attached — upload one in Step 4 above</span>
+          <!-- MATCHED JOBS LIST -->
+          <div class="job-list-wrapper">
+            <div class="section-title-row">
+              <h3 class="card-title" style="font-size: 1.1rem;">Scraped Job Postings</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);" id="jobListSub">Run search to populate</span>
+            </div>
+
+            <div class="job-list" id="jobList">
+              <div class="empty-msg">No job posts scraped yet — click "Start Scraper" in Step 2 above.</div>
+            </div>
           </div>
 
-          <!-- SEND ALL BUTTON -->
-          <button class="btn btn-success" id="btnSendAll" onclick="sendToAllRecruiters()" disabled>
-            <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
-            ✉️ Send Email to All Recruiters at Once
-          </button>
-        </div>
+          <!-- Batch Apply Button -->
+          <div style="margin-top: 24px;">
+            <button class="btn btn-success" id="btnBatchApply" onclick="executeBatchApply()" disabled>
+              <svg viewBox="0 0 24 24">
+                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+              </svg>
+              Send Applications to Selected Recruiters
+            </button>
+          </div>
 
-        <div class="terminal-box" style="margin-top: 20px;">
-          <div class="terminal-header">
-            <span class="terminal-dot dot-red"></span>
-            <span class="terminal-dot dot-yellow"></span>
-            <span class="terminal-dot dot-green"></span>
-            <span class="terminal-title">composer.log — Batch Email Activity</span>
+          <div class="terminal-box" style="margin-top: 20px;">
+            <div class="terminal-header">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+              <span class="terminal-title">outreach.log — Gmail Application Activity</span>
+            </div>
+            <pre id="emailConsole" class="terminal-console">No emails sent yet.</pre>
           </div>
-          <pre id="composerConsole" class="terminal-console">Email composer ready. Scrape jobs first to auto-populate recruiter emails.</pre>
-        </div>
-      </section>
+        </section>
 
-      <!-- ═══ STEP 6: ANALYTICS & THREADED FOLLOW-UP BLUEPRINT CARD ═══ -->
-      <section class="glass-card" id="card-step6" style="margin-top: 24px;">
-        <div class="card-header">
-          <span class="step-badge" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">6</span>
-          <h2 class="card-title">📊 Analytics &amp; Pipeline Operations Blueprint</h2>
-        </div>
-        <p class="card-desc">Track real-time outreach statistics, run 7-day threaded follow-ups, and sync recruiter replies from your Gmail inbox.</p>
+        <!-- ═══ STEP 5: EMAIL COMPOSER ═══ -->
+        <section class="glass-card email-composer" id="card-step5">
+          <div class="card-header">
+            <span class="step-badge"
+              style="background: linear-gradient(135deg, var(--accent-emerald), #059669);">5</span>
+            <h2 class="card-title">📧 Email Composer — Send to All Recruiters</h2>
+          </div>
+          <p class="card-desc">All scraped recruiter emails are auto-populated below. Review the email, edit if needed,
+            and send to all recruiters at once.</p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary-light);" id="statScraped">0</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Scraped Recruiters</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 1.6rem; font-weight: 700; color: #10b981;" id="statSent">0</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Emails Dispatched</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 1.6rem; font-weight: 700; color: #f59e0b;" id="statFollowups">0</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Threaded Follow-Ups</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 1.6rem; font-weight: 700; color: #ec4899;" id="statReplies">0</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Replies Detected</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 1.6rem; font-weight: 700; color: #38bdf8;" id="statReplyRate">0%</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Reply Rate</div>
-          </div>
-        </div>
+          <div class="composer-fields">
+            <!-- TO FIELD -->
+            <div class="field">
+              <label for="composerTo" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>To: (Recruiter Emails — auto-updated by scraper)</span>
+                <span class="composer-email-count" id="composerEmailCount">0 emails</span>
+              </label>
+              <textarea id="composerTo" class="composer-to-field" rows="2"
+                placeholder="Emails will auto-populate after scraping... You can also type emails manually (comma-separated)"></textarea>
+            </div>
 
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <button class="btn btn-outline" style="flex: 1;" onclick="fetchAnalyticsData()">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12H4A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
-            🔄 Refresh Analytics Stats
-          </button>
-          <button class="btn btn-outline" style="flex: 1;" onclick="runThreadedFollowupsUI()">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M10,9V5L3,12L10,19V14.9C15,14.9 18.5,16.5 21,20C20,15 17,10 10,9Z"/></svg>
-            🔁 Trigger 7-Day Threaded Follow-Ups
-          </button>
-          <button class="btn btn-outline" style="flex: 1;" onclick="syncInboxRepliesUI()">
-            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
-            📥 Sync Inbox Replies (IMAP)
-          </button>
-        </div>
-      </section>
+            <!-- SUBJECT -->
+            <div class="field">
+              <label for="composerSubject">Subject</label>
+              <input type="text" id="composerSubject" placeholder="Application for [Job Title] - [Candidate Name]">
+            </div>
+
+            <!-- BODY -->
+            <div class="field">
+              <label for="composerBody">Email Body (Boilerplate Format)</label>
+              <textarea id="composerBody" rows="14">Dear [Recruiter Name],
+
+I hope this email finds you well.
+
+I saw your recent hiring post on LinkedIn regarding a [Job Title] opportunity and would like to submit my application for this role. I have attached my resume to this email for your review.
+
+Here is a summary of my profile for your quick review:
+- Candidate Full Name: [Candidate Name]
+- Email Address: [Candidate Email]
+- Phone Number: [Candidate Phone]
+- LinkedIn Profile: [Candidate LinkedIn Profile]
+- GitHub Profile: [Candidate GitHub Profile]
+- Current Location: [Current Location]
+- Relocation Status: [Relocation Status]
+- Work Authorization: [Work Authorization]
+- Availability: [Availability]
+- Total Experience: [Total Experience]
+- Expected Salary: [Expected Salary]
+
+Below are the details of the post I am applying to:
+- LinkedIn Post URL: [Job Source URL]
+-----------------------------------------
+Job Post Description:
+[Job Post Description]
+-----------------------------------------
+
+I would appreciate the chance to discuss how my experience aligns with your requirements. Thank you for your time and consideration.
+
+Best regards,
+[Candidate Name]</textarea>
+            </div>
+
+            <!-- ATTACHMENT INDICATOR -->
+            <div
+              style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(10, 13, 20, 0.5); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--text-muted);">
+                <path
+                  d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z" />
+              </svg>
+              <span id="composerAttachment" style="font-size: 0.85rem; color: var(--text-secondary);">No resume attached
+                — upload one in Step 4 above</span>
+            </div>
+
+            <!-- SEND ALL BUTTON -->
+            <button class="btn btn-success" id="btnSendAll" onclick="sendToAllRecruiters()" disabled>
+              <svg viewBox="0 0 24 24">
+                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+              </svg>
+              ✉️ Send Email to All Recruiters at Once
+            </button>
+          </div>
+
+          <div class="terminal-box" style="margin-top: 20px;">
+            <div class="terminal-header">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+              <span class="terminal-title">composer.log — Batch Email Activity</span>
+            </div>
+            <pre id="composerConsole"
+              class="terminal-console">Email composer ready. Scrape jobs first to auto-populate recruiter emails.</pre>
+          </div>
+        </section>
+
+        <!-- ═══ STEP 6: ANALYTICS & THREADED FOLLOW-UP BLUEPRINT CARD ═══ -->
+        <section class="glass-card" id="card-step6" style="margin-top: 24px;">
+          <div class="card-header">
+            <span class="step-badge" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">6</span>
+            <h2 class="card-title">📊 Analytics &amp; Pipeline Operations Blueprint</h2>
+          </div>
+          <p class="card-desc">Track real-time outreach statistics, run 7-day threaded follow-ups, and sync recruiter
+            replies from your Gmail inbox.</p>
+
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div
+              style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
+              <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary-light);" id="statScraped">0</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Scraped Recruiters
+              </div>
+            </div>
+            <div
+              style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
+              <div style="font-size: 1.6rem; font-weight: 700; color: #10b981;" id="statSent">0</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Emails Dispatched
+              </div>
+            </div>
+            <div
+              style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
+              <div style="font-size: 1.6rem; font-weight: 700; color: #f59e0b;" id="statFollowups">0</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Threaded Follow-Ups
+              </div>
+            </div>
+            <div
+              style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
+              <div style="font-size: 1.6rem; font-weight: 700; color: #ec4899;" id="statReplies">0</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Replies Detected
+              </div>
+            </div>
+            <div
+              style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; text-align: center;">
+              <div style="font-size: 1.6rem; font-weight: 700; color: #38bdf8;" id="statReplyRate">0%</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Reply Rate</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="fetchAnalyticsData()">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
+                <path
+                  d="M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12H4A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z" />
+              </svg>
+              🔄 Refresh Analytics Stats
+            </button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="runThreadedFollowupsUI()">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
+                <path d="M10,9V5L3,12L10,19V14.9C15,14.9 18.5,16.5 21,20C20,15 17,10 10,9Z" />
+              </svg>
+              🔁 Trigger 7-Day Threaded Follow-Ups
+            </button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="syncInboxRepliesUI()">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
+                <path
+                  d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z" />
+              </svg>
+              📥 Sync Inbox Replies (IMAP)
+            </button>
+          </div>
+        </section>
 
     </main>
   </div>
@@ -1507,10 +1765,170 @@ Best regards,
   <script>
     let scrapedJobs = [];
 
+    const PROFILE_STORAGE_KEY = 'candidate_profile_v2';
+    const STRUCTURED_RESUME_STORAGE_KEY = 'candidate_structured_resume_v2';
+    const RAW_RESUME_TEXT_STORAGE_KEY = 'candidate_raw_resume_text_v2';
+
+    const ALL_PERSISTENT_IDS = [
+      'candName', 'candEmail', 'candPhone', 'candLinkedin', 'candGithub',
+      'candLocation', 'candRelocation', 'candVisa', 'candAvailability',
+      'candExperienceYears', 'candSalary', 'candSummary', 'candSkills',
+      'candExperience', 'candEducation', 'candCertifications', 'candExtracurriculars',
+      'manualResumeInput', 'jobTitleInput', 'companyInput'
+    ];
+
     window.addEventListener('DOMContentLoaded', () => {
       checkGmailStatus();
+      loadProfileFromLocalStorage();
+      loadProfile();
       updateComposerSubject();
+      updateComposerBody();
+
+      ALL_PERSISTENT_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            saveProfileToLocalStorage();
+            updateComposerSubject();
+            updateComposerBody();
+          });
+          el.addEventListener('change', () => {
+            saveProfileToLocalStorage();
+            updateComposerSubject();
+            updateComposerBody();
+          });
+          el.addEventListener('blur', saveProfile);
+        }
+      });
     });
+
+    function saveProfileToLocalStorage() {
+      try {
+        const data = {};
+        ALL_PERSISTENT_IDS.forEach(id => {
+          const el = document.getElementById(id);
+          if (el && el.value !== undefined) {
+            data[id] = el.value;
+          }
+        });
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(data));
+
+        if (activeStructuredResume) {
+          localStorage.setItem(STRUCTURED_RESUME_STORAGE_KEY, JSON.stringify(activeStructuredResume));
+        }
+        if (activeRawResumeText) {
+          localStorage.setItem(RAW_RESUME_TEXT_STORAGE_KEY, activeRawResumeText);
+        }
+      } catch (err) {
+        console.warn('LocalStorage save warning:', err);
+      }
+    }
+
+    function loadProfileFromLocalStorage() {
+      try {
+        const savedData = localStorage.getItem(PROFILE_STORAGE_KEY);
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          Object.keys(data).forEach(id => {
+            const el = document.getElementById(id);
+            if (el && data[id] !== undefined && data[id] !== null && data[id] !== '') {
+              el.value = data[id];
+            }
+          });
+        }
+
+        const savedRawText = localStorage.getItem(RAW_RESUME_TEXT_STORAGE_KEY);
+        if (savedRawText) {
+          activeRawResumeText = savedRawText;
+          const manualEl = document.getElementById('manualResumeInput');
+          if (manualEl && !manualEl.value) {
+            manualEl.value = savedRawText;
+          }
+        }
+
+        const savedStructured = localStorage.getItem(STRUCTURED_RESUME_STORAGE_KEY);
+        if (savedStructured) {
+          activeStructuredResume = JSON.parse(savedStructured);
+          const container = document.getElementById('generatedResumeContainer');
+          const preview = document.getElementById('formattedMarkdownPreview');
+          if (container && preview && activeStructuredResume.formattedMarkdown) {
+            container.style.display = 'block';
+            preview.textContent = activeStructuredResume.formattedMarkdown;
+          }
+          const attachmentTag = document.getElementById('composerAttachment');
+          if (attachmentTag) {
+            attachmentTag.textContent = '✨ Saved Resume Profile Active';
+            attachmentTag.style.color = 'var(--accent-emerald)';
+          }
+        }
+      } catch (err) {
+        console.warn('LocalStorage load warning:', err);
+      }
+    }
+
+    function clearSavedProfile() {
+      if (confirm('Are you sure you want to clear your saved personal details and resume from local storage?')) {
+        localStorage.removeItem(PROFILE_STORAGE_KEY);
+        localStorage.removeItem(STRUCTURED_RESUME_STORAGE_KEY);
+        localStorage.removeItem(RAW_RESUME_TEXT_STORAGE_KEY);
+        activeStructuredResume = null;
+        activeRawResumeText = "";
+
+        ALL_PERSISTENT_IDS.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+
+        const container = document.getElementById('generatedResumeContainer');
+        if (container) container.style.display = 'none';
+
+        const attachmentTag = document.getElementById('composerAttachment');
+        if (attachmentTag) {
+          attachmentTag.textContent = 'No resume attached';
+          attachmentTag.style.color = 'var(--text-muted)';
+        }
+
+        updateComposerSubject();
+        updateComposerBody();
+
+        alert('Saved personal details and resume cleared successfully.');
+      }
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch('/auth/profile');
+        if (res.ok) {
+          const profile = await res.json();
+          ['candName', 'candEmail', 'candPhone', 'candLinkedin', 'candGithub', 'candLocation', 'candRelocation', 'candVisa', 'candAvailability', 'candExperienceYears', 'candSalary'].forEach(id => {
+            if (profile[id]) {
+              const el = document.getElementById(id);
+              if (el && !el.value) el.value = profile[id];
+            }
+          });
+          updateComposerBody();
+        }
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      }
+    }
+
+    async function saveProfile() {
+      try {
+        const profile = {};
+        ['candName', 'candEmail', 'candPhone', 'candLinkedin', 'candGithub', 'candLocation', 'candRelocation', 'candVisa', 'candAvailability', 'candExperienceYears', 'candSalary'].forEach(id => {
+          profile[id] = val(id);
+        });
+        await fetch('/auth/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profile)
+        });
+        saveProfileToLocalStorage();
+      } catch (err) {
+        console.error('Failed to save profile:', err);
+      }
+    }
 
     function connectGmail() {
       window.location.href = '/auth/google';
@@ -1580,7 +1998,7 @@ EXTRA-CURRICULARS
       const input = document.getElementById('manualResumeInput');
       if (input) {
         input.value = SAMPLE_SHREEYESH_RESUME;
-        
+
         // Auto-fill Candidate Profile Fields from Shreeyesh's resume details
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
         setVal('candName', 'SHREEYESH BARAL');
@@ -1646,13 +2064,14 @@ EXTRA-CURRICULARS
             setIfPresent('candSkills', skillStr);
           }
 
-          // Auto-replace scanned fields in email template!
+          // Auto-replace scanned fields in email template & save to LocalStorage!
           updateComposerSubject();
           updateComposerBody();
+          saveProfileToLocalStorage();
 
           document.getElementById('generatedResumeContainer').style.display = 'block';
           document.getElementById('formattedMarkdownPreview').textContent = data.formattedMarkdown || 'Resume formatted.';
-          
+
           document.getElementById('composerAttachment').textContent = '✨ Gemini Auto-Generated Resume Profile Active';
           document.getElementById('composerAttachment').style.color = 'var(--accent-emerald)';
 
@@ -1685,6 +2104,9 @@ EXTRA-CURRICULARS
           fd.append('baseResume', JSON.stringify(activeStructuredResume));
         }
         fd.append('jobTitle', val('jobTitleInput', 'Software Engineer'));
+        fd.append('candidateLinkedin', val('candLinkedin'));
+        fd.append('candidateGithub', val('candGithub'));
+        fd.append('jobPostingLink', val('jobPostingLink'));
         const directJD = val('directJobDescription') || ((scrapedJobs[0] && scrapedJobs[0].text) ? scrapedJobs[0].text : '');
         if (directJD) {
           fd.append('jobPostText', directJD);
@@ -1715,7 +2137,7 @@ EXTRA-CURRICULARS
       try {
         const res = await fetch('/auth/status');
         const data = await res.json();
-        
+
         const badge = document.getElementById('gmailStatus');
         const navDot = document.getElementById('gmailNavDot');
         const navText = document.getElementById('gmailNavText');
@@ -1772,12 +2194,26 @@ EXTRA-CURRICULARS
       document.getElementById('composerSubject').value = `Application for ${jobTitle} - ${candName}`;
     }
 
+    let baseEmailTemplate = '';
+    let baseComposerBody = '';
+
     // ── Update Composer Body with scanned candidate details ──
     function updateComposerBody() {
+      if (!baseEmailTemplate) {
+        const et = document.getElementById('emailTemplate');
+        if (et) baseEmailTemplate = et.value;
+      }
+      if (!baseComposerBody) {
+        const cb = document.getElementById('composerBody');
+        if (cb) baseComposerBody = cb.value;
+      }
+
       const candName = val('candName', '[Candidate Name]');
       const candEmail = val('candEmail', '[Candidate Email]');
       const candPhone = val('candPhone', '[Candidate Phone]');
       const candLinkedin = val('candLinkedin', '[Candidate LinkedIn Profile]');
+      const candGithub = val('candGithub', '[Candidate GitHub Profile]');
+      const jobPostingLink = val('jobPostingLink', '[Job Posting Link]');
       const candLocation = val('candLocation', '[Current Location]');
       const candRelocation = val('candRelocation', '[Relocation Status]');
       const candVisa = val('candVisa', '[Work Authorization]');
@@ -1792,22 +2228,25 @@ EXTRA-CURRICULARS
           .replace(/\[Candidate Email\]/g, candEmail)
           .replace(/\[Candidate Phone\]/g, candPhone)
           .replace(/\[Candidate LinkedIn Profile\]/g, candLinkedin)
+          .replace(/\[Candidate GitHub Profile\]/g, candGithub)
+          .replace(/\[Job Posting Link\]/g, jobPostingLink)
           .replace(/\[Current Location\]/g, candLocation)
           .replace(/\[Relocation Status\]/g, candRelocation)
           .replace(/\[Work Authorization\]/g, candVisa)
           .replace(/\[Availability\]/g, candAvailability)
           .replace(/\[Total Experience\]/g, candExpYears)
-          .replace(/\[Expected Salary\]/g, candSalary);
+          .replace(/\[Expected Salary\]/g, candSalary)
+          .replace(/\[Job Source URL\]/g, jobPostingLink);
       }
 
       const emailTpl = document.getElementById('emailTemplate');
-      if (emailTpl && emailTpl.value) {
-        emailTpl.value = replaceTokens(emailTpl.value);
+      if (emailTpl && baseEmailTemplate) {
+        emailTpl.value = replaceTokens(baseEmailTemplate);
       }
 
       const compBody = document.getElementById('composerBody');
-      if (compBody && compBody.value) {
-        compBody.value = replaceTokens(compBody.value);
+      if (compBody && baseComposerBody) {
+        compBody.value = replaceTokens(baseComposerBody);
       }
     }
 
@@ -1837,7 +2276,7 @@ EXTRA-CURRICULARS
       const candName = document.getElementById('candName').value || 'Candidate';
       const jobTitle = document.getElementById('jobTitleInput').value || 'Software Engineer';
       const resumeFile = document.getElementById('resumeFile').files[0];
-      
+
       showLoader('Gemini AI reading old resume PDF & tailoring to job description…');
       try {
         const fd = new FormData();
@@ -1845,6 +2284,9 @@ EXTRA-CURRICULARS
         fd.append('candidateEmail', document.getElementById('candEmail').value);
         fd.append('candidatePhone', document.getElementById('candPhone').value);
         fd.append('candidateSummary', document.getElementById('candSummary').value);
+        fd.append('candidateLinkedin', document.getElementById('candLinkedin').value);
+        fd.append('candidateGithub', document.getElementById('candGithub').value);
+        fd.append('jobPostingLink', document.getElementById('jobPostingLink').value);
         fd.append('candidateExperience', document.getElementById('candExperience').value);
         fd.append('candidateEducation', document.getElementById('candEducation').value);
         fd.append('candidateSkills', document.getElementById('candSkills').value);
@@ -1885,6 +2327,27 @@ EXTRA-CURRICULARS
       document.getElementById('loaderOverlay').style.display = 'none';
     }
 
+    function applyQuickPreset(preset) {
+      const locSelect = document.getElementById('filterLocation');
+      if (locSelect) locSelect.value = preset;
+      const queryInput = document.getElementById('searchQueryInput');
+      const baseRole = val('jobTitleInput', 'Software Engineer');
+      
+      if (preset === 'us-remote') {
+        queryInput.value = `"${baseRole}" US Remote full-time -C2C`;
+      } else if (preset === 'us-all') {
+        queryInput.value = `"${baseRole}" "United States" full-time`;
+      } else if (preset === 'india-all') {
+        queryInput.value = `"${baseRole}" India full-time`;
+      } else if (preset === 'india-remote') {
+        queryInput.value = `"${baseRole}" India Remote full-time`;
+      } else if (preset === 'global-remote') {
+        queryInput.value = `"${baseRole}" Remote full-time`;
+      } else {
+        queryInput.value = `"${baseRole}" full-time -C2C`;
+      }
+    }
+
     function openDirectLinkedInSearch() {
       const searchQuery = document.getElementById('searchQueryInput').value.trim();
       const timeWindow = document.getElementById('filterTimeWindow').value;
@@ -1905,6 +2368,7 @@ EXTRA-CURRICULARS
 
       const searchQuery = document.getElementById('searchQueryInput').value.trim();
       const timeWindow = document.getElementById('filterTimeWindow').value;
+      const location = val('filterLocation', 'all');
       const searchConsole = document.getElementById('searchConsole');
 
       if (!searchQuery) {
@@ -1916,6 +2380,7 @@ EXTRA-CURRICULARS
 
       searchConsole.textContent = `[${new Date().toLocaleTimeString()}] Search Query:\n`;
       searchConsole.textContent += `  • Query: "${searchQuery}"\n`;
+      searchConsole.textContent += `  • Location Filter: "${location}"\n`;
       searchConsole.textContent += `  • Time Window: "${timeWindow === 'past-week' ? 'Past 7 Days' : 'Past 24 Hours'}"\n`;
 
       if (hasCreds) {
@@ -1935,7 +2400,8 @@ EXTRA-CURRICULARS
             password,
             liAtCookie,
             searchQuery,
-            timeWindow
+            timeWindow,
+            location
           })
         });
 
@@ -1950,7 +2416,7 @@ EXTRA-CURRICULARS
 
         searchConsole.textContent += `[SUCCESS] Retrieved ${data.count} LinkedIn job postings with recruiter contacts.\n`;
         scrapedJobs = data.jobs || [];
-        
+
         // Update stats bar
         document.getElementById('statJobsCount').textContent = scrapedJobs.length;
         let emailCount = 0;
@@ -1968,10 +2434,23 @@ EXTRA-CURRICULARS
       }
     }
 
+    function applyQuickPreset(presetVal) {
+      const select = document.getElementById('filterLocation');
+      if (select) {
+        select.value = presetVal;
+        const selectedOption = select.options[select.selectedIndex];
+        const label = selectedOption ? selectedOption.text : presetVal;
+        const searchConsole = document.getElementById('searchConsole');
+        if (searchConsole) {
+          searchConsole.textContent += `[FILTER PRESET] Applied Workplace/Location Filter: ${label}\n`;
+        }
+      }
+    }
+
     // Safe DOM getter to avoid "Cannot read properties of null (reading 'value')"
     function val(id, fallback = '') {
       const el = document.getElementById(id);
-      return (el && el.value !== undefined && el.value !== null) ? el.value : fallback;
+      return (el && el.value !== undefined && el.value !== null && el.value.trim() !== '') ? el.value.trim() : fallback;
     }
 
     // Auto-scans manually pasted Job Description text for recruiter emails
@@ -1994,6 +2473,15 @@ EXTRA-CURRICULARS
       }
     }
 
+    function updateJobSourceUrl(jobId, newUrl) {
+      if (!jobId) return;
+      const job = scrapedJobs.find(j => String(j.id) === String(jobId));
+      if (job) {
+        job.sourceUrl = newUrl;
+        job.job_post_url = newUrl;
+      }
+    }
+
     // ── Render Job Cards ──
     function renderJobList() {
       const list = document.getElementById('jobList');
@@ -2012,7 +2500,15 @@ EXTRA-CURRICULARS
       list.innerHTML = '';
 
       scrapedJobs.forEach((job, i) => {
-        const allEmails = (job.recruiterEmails && job.recruiterEmails.length > 0) ? job.recruiterEmails.join(', ') : '';
+        const recruiterName = job.recruiter_name || job.author || 'Hiring Team';
+        const jobTitle = job.job_title || job.title || 'Software Engineer';
+        const companyName = job.company_name || job.company || 'Hiring Company';
+        const jobPostUrl = job.job_post_url || job.sourceUrl || '';
+        const jobDescription = job.job_description || job.text || '';
+        const allEmails = (job.recruiterEmails && job.recruiterEmails.length > 0) 
+          ? job.recruiterEmails.join(', ') 
+          : (job.recruiter_email || '');
+
         const card = document.createElement('div');
         card.className = 'job-card';
         card.id = `job-card-${job.id}`;
@@ -2020,18 +2516,28 @@ EXTRA-CURRICULARS
           <input type="checkbox" class="job-checkbox" id="chk-${job.id}" checked data-index="${i}">
           <div class="job-body">
             <div class="job-top">
-              <span class="job-name">${job.title}</span>
+              <span class="job-name">${jobTitle} <span style="font-weight: 400; color: var(--text-muted);">at ${companyName}</span></span>
               <span class="status-pill pending" id="status-${job.id}">Pending</span>
             </div>
             <div class="job-meta">
-              <span>👤 Recruiter: <strong>${job.author || 'Hiring Manager'}</strong></span>
-              <span>Posted: ${new Date(job.postedAt).toLocaleDateString()}</span>
-              <span><a href="${job.sourceUrl}" target="_blank">View on LinkedIn ↗</a></span>
+              <span>👤 Recruiter: <strong>${recruiterName}</strong></span>
+              <span>Posted: ${new Date(job.postedAt || Date.now()).toLocaleDateString()}</span>
+            </div>
+
+            <!-- LINKEDIN JOB POSTING URL (EXACT /jobs/view/ URL) -->
+            <div class="field" style="margin-top: 10px; margin-bottom: 8px;">
+              <label for="job-link-${job.id}" style="font-size: 0.76rem; font-weight: 600; color: var(--accent-emerald); display: flex; align-items: center; gap: 6px;">
+                🔗 LinkedIn Job Posting URL (Exact /jobs/view/ URL):
+              </label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="job-link-${job.id}" value="${jobPostUrl}" style="font-size: 0.8rem; font-family: var(--font-mono); flex: 1; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(10, 13, 20, 0.6); color: #a5b4fc; padding: 6px 10px;" oninput="updateJobSourceUrl('${job.id}', this.value)" placeholder="https://www.linkedin.com/jobs/view/...">
+                <a href="${jobPostUrl || '#'}" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 6px 10px; text-decoration: none; white-space: nowrap;">Open ↗</a>
+              </div>
             </div>
             
             <div class="field" style="margin-top: 10px; margin-bottom: 8px;">
-              <label for="jd-text-${job.id}" style="font-size: 0.78rem; font-weight: 600; color: var(--primary-light);">📋 Job Description (Edit or Copy-Paste Full Post Text Here to Auto-Scan Email):</label>
-              <textarea id="jd-text-${job.id}" rows="4" style="font-size: 0.8rem; font-family: inherit; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(10, 13, 20, 0.4); color: var(--text-primary); padding: 8px;" placeholder="Paste job post text here..." oninput="scanPastedJD(this.value, '${job.id}')">${job.text || ''}</textarea>
+              <label for="jd-text-${job.id}" style="font-size: 0.78rem; font-weight: 600; color: var(--primary-light);">📋 Full Job Description (Extracted Text):</label>
+              <textarea id="jd-text-${job.id}" rows="5" style="font-size: 0.8rem; font-family: inherit; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(10, 13, 20, 0.4); color: var(--text-primary); padding: 8px;" placeholder="Paste job post text here..." oninput="scanPastedJD(this.value, '${job.id}')">${jobDescription}</textarea>
             </div>
             
             <div class="email-tags" style="margin-bottom: 8px;">
@@ -2108,6 +2614,9 @@ EXTRA-CURRICULARS
         fd.append('candidateEmail', val('candEmail'));
         fd.append('candidatePhone', val('candPhone'));
         fd.append('candidateSummary', val('candSummary'));
+        fd.append('candidateLinkedin', val('candLinkedin'));
+        fd.append('candidateGithub', val('candGithub'));
+        fd.append('jobPostingLink', val('jobPostingLink'));
         fd.append('candidateExperience', val('candExperience'));
         fd.append('candidateEducation', val('candEducation'));
         fd.append('candidateSkills', val('candSkills'));
@@ -2181,6 +2690,9 @@ EXTRA-CURRICULARS
         fd.append('candidateEmail', val('candEmail'));
         fd.append('candidatePhone', val('candPhone'));
         fd.append('candidateSummary', val('candSummary'));
+        fd.append('candidateLinkedin', val('candLinkedin'));
+        fd.append('candidateGithub', val('candGithub'));
+        fd.append('jobPostingLink', val('jobPostingLink'));
         fd.append('candidateExperience', val('candExperience'));
         fd.append('candidateEducation', val('candEducation'));
         fd.append('candidateSkills', val('candSkills'));
@@ -2215,7 +2727,7 @@ EXTRA-CURRICULARS
       const query = val('searchQueryInput', '"Software Engineer" full-time -C2C');
       const emailConsole = document.getElementById('emailConsole');
       showLoader(`Running 1-Click End-to-End Automation for: ${query}…`);
-      
+
       if (emailConsole) {
         emailConsole.textContent = `[${new Date().toLocaleTimeString()}] ▶ Launching 1-Click Full Automation Pipeline…\n`;
       }
@@ -2275,6 +2787,8 @@ EXTRA-CURRICULARS
           if (emailConsole) {
             emailConsole.textContent += `[SUCCESS] Parsed uploaded PDF: ${file.name}. Profile auto-filled for ${p.candidateName || 'Candidate'}.\n`;
           }
+          updateComposerBody();
+          saveProfileToLocalStorage();
           alert(`Resume PDF successfully parsed! Candidate profile auto-filled for ${p.candidateName || 'Candidate'}.`);
         }
       } catch (err) {
@@ -2288,6 +2802,8 @@ EXTRA-CURRICULARS
       const candEmail = val('candEmail');
       const candPhone = val('candPhone');
       const candLinkedin = val('candLinkedin');
+      const candGithub = val('candGithub');
+      const jobPostingLink = job.sourceUrl || job.job_post_url || val('jobPostingLink') || 'https://www.linkedin.com';
       const candLocation = val('candLocation');
       const candRelocation = val('candRelocation');
       const candVisa = val('candVisa');
@@ -2295,24 +2811,47 @@ EXTRA-CURRICULARS
       const candExpYears = val('candExperienceYears');
       const candSalary = val('candSalary');
 
-      const recruiterName = job.author || 'Hiring Manager';
-      const jobTitle = val('jobTitleInput', job.title || 'Target Role');
+      let recruiterName = job.recruiter_name || job.author || 'Hiring Team';
+      if (!recruiterName || recruiterName.toLowerCase() === 'recruiter' || recruiterName.toLowerCase() === 'linkedin recruiter') {
+        recruiterName = 'Hiring Team';
+      }
+      const jobTitle = val('jobTitleInput', job.title || 'Software Engineer');
+      const companyName = val('companyInput', job.company || 'Hiring Company');
+      const jobDescription = job.text || job.job_description || '';
 
-      return templateStr
-        .replace(/\[Recruiter Name\]/g, recruiterName)
-        .replace(/\[Job Title\]/g, jobTitle)
-        .replace(/\[Candidate Name\]/g, candName)
-        .replace(/\[Candidate Email\]/g, candEmail)
-        .replace(/\[Candidate Phone\]/g, candPhone)
-        .replace(/\[Candidate LinkedIn Profile\]/g, candLinkedin)
-        .replace(/\[Current Location\]/g, candLocation)
-        .replace(/\[Relocation Status\]/g, candRelocation)
-        .replace(/\[Work Authorization\]/g, candVisa)
-        .replace(/\[Availability\]/g, candAvailability)
-        .replace(/\[Total Experience\]/g, candExpYears)
-        .replace(/\[Expected Salary\]/g, candSalary)
-        .replace(/\[Job Source URL\]/g, job.sourceUrl || 'https://www.linkedin.com')
-        .replace(/\[Job Post Description\]/g, job.text || '');
+      let body = templateStr
+        // Handlebars placeholders {{ variable }}
+        .replace(/\{\{\s*recruiter_name\s*\}\}/gi, recruiterName)
+        .replace(/\{\{\s*job_title\s*\}\}/gi, jobTitle)
+        .replace(/\{\{\s*company_name\s*\}\}/gi, companyName)
+        .replace(/\{\{\s*job_post_url\s*\}\}/gi, jobPostingLink)
+        .replace(/\{\{\s*job_description\s*\}\}/gi, jobDescription)
+        .replace(/\{\{\s*candidate_name\s*\}\}/gi, candName)
+        .replace(/\{\{\s*candidate_email\s*\}\}/gi, candEmail)
+        .replace(/\{\{\s*candidate_phone\s*\}\}/gi, candPhone)
+        .replace(/\{\{\s*candidate_linkedin\s*\}\}/gi, candLinkedin)
+        .replace(/\{\{\s*candidate_github\s*\}\}/gi, candGithub)
+        // Bracket placeholders [Variable Name]
+        .replace(/\[Recruiter Name\]/gi, recruiterName)
+        .replace(/\[Job Title\]/gi, jobTitle)
+        .replace(/\[Company Name\]/gi, companyName)
+        .replace(/\[Company\]/gi, companyName)
+        .replace(/\[Candidate Name\]/gi, candName)
+        .replace(/\[Candidate Email\]/gi, candEmail)
+        .replace(/\[Candidate Phone\]/gi, candPhone)
+        .replace(/\[Candidate LinkedIn Profile\]/gi, candLinkedin)
+        .replace(/\[Candidate GitHub Profile\]/gi, candGithub)
+        .replace(/\[Job Posting Link\]/gi, jobPostingLink)
+        .replace(/\[Current Location\]/gi, candLocation)
+        .replace(/\[Relocation Status\]/gi, candRelocation)
+        .replace(/\[Work Authorization\]/gi, candVisa)
+        .replace(/\[Availability\]/gi, candAvailability)
+        .replace(/\[Total Experience\]/gi, candExpYears)
+        .replace(/\[Expected Salary\]/gi, candSalary)
+        .replace(/\[Job Source URL\]/gi, jobPostingLink)
+        .replace(/\[Job Post Description\]/gi, jobDescription);
+
+      return body;
     }
 
     // ── STEP 4: Batch Apply ──
@@ -2361,8 +2900,8 @@ EXTRA-CURRICULARS
         const emailInput = document.getElementById(`email-input-${job.id}`);
         const pastedJD = val(`jd-text-${job.id}`, job.text || '');
 
-        let emailsToSend = (job.recruiterEmails && job.recruiterEmails.length > 0) 
-          ? job.recruiterEmails 
+        let emailsToSend = (job.recruiterEmails && job.recruiterEmails.length > 0)
+          ? job.recruiterEmails
           : (emailInput && emailInput.value.trim() ? [emailInput.value.trim()] : []);
 
         if (emailsToSend.length === 0) {
@@ -2382,12 +2921,17 @@ EXTRA-CURRICULARS
             const activeJob = { ...job, text: pastedJD };
             let bodyText = formatBoilerplateEmail(template, activeJob);
 
+            const recName = job.recruiter_name || job.author || 'Hiring Team';
+            const jobUrl = job.sourceUrl || job.job_post_url || val('jobPostingLink') || 'https://www.linkedin.com';
+
             const fd = new FormData();
             fd.append('to', email);
             fd.append('candidateName', candName);
             fd.append('jobTitle', jobTitle);
             fd.append('company', company);
-            fd.append('sourceUrl', job.sourceUrl);
+            fd.append('recruiterName', recName);
+            fd.append('sourceUrl', jobUrl);
+            fd.append('jobPostText', pastedJD || job.text || '');
             fd.append('message', bodyText);
 
             // Always attach the uploaded resume
@@ -2398,10 +2942,13 @@ EXTRA-CURRICULARS
               fd.append('candidateEmail', val('candEmail'));
               fd.append('candidatePhone', val('candPhone'));
               fd.append('candidateSummary', val('candSummary'));
+              fd.append('candidateLinkedin', val('candLinkedin'));
+              fd.append('candidateGithub', val('candGithub'));
+              fd.append('jobPostingLink', jobUrl);
               fd.append('candidateExperience', val('candExperience'));
               fd.append('candidateEducation', val('candEducation'));
               fd.append('candidateSkills', val('candSkills'));
-              fd.append('jobPostText', pastedJD || 'Software Engineering Role');
+              fd.append('jobPostText', pastedJD || job.text || 'Software Engineering Role');
             }
 
             const response = await fetch('/api/jobs/send', { method: 'POST', body: fd });
@@ -2485,6 +3032,9 @@ EXTRA-CURRICULARS
             fd.append('candidateEmail', val('candEmail'));
             fd.append('candidatePhone', val('candPhone'));
             fd.append('candidateSummary', val('candSummary'));
+            fd.append('candidateLinkedin', val('candLinkedin'));
+            fd.append('candidateGithub', val('candGithub'));
+            fd.append('jobPostingLink', val('jobPostingLink'));
             fd.append('candidateExperience', val('candExperience'));
             fd.append('candidateEducation', val('candEducation'));
             fd.append('candidateSkills', val('candSkills'));
@@ -2572,4 +3122,5 @@ EXTRA-CURRICULARS
     window.addEventListener('DOMContentLoaded', fetchAnalyticsData);
   </script>
 </body>
+
 </html>

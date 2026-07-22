@@ -42,12 +42,12 @@ CERTIFICATIONS
 
 TECHNICAL SKILLS
 
-● React.js, Vite, Tailwind CSS, Firebase Authentication, Cloud Firestore, Firebase Hosting, Google Gemini AI, Recharts
-● Java, JavaScript, TypeScript, Python, HTML5, CSS3
-● React.js, Tailwind CSS, FastAPI, Firebase, REST APIs
-● Git, GitHub, Figma, Canva
-● GitHub Actions (CI/CD), Docker, Linux
-● Firestore, MySQL, PostgreSQL
+● Languages: Java, JavaScript, TypeScript, Python, HTML5, CSS3
+● Frameworks & Libraries: React.js, Vite, Tailwind CSS, FastAPI, Recharts
+● Databases: Cloud Firestore, Firestore, MySQL, PostgreSQL
+● Cloud & DevOps: Firebase Authentication, Firebase Hosting, Firebase, GitHub Actions (CI/CD), Docker, Linux
+● AI & ML: Google Gemini AI
+● Tools & Platforms: REST APIs, Git, GitHub, Figma, Canva
 
 EXTRA-CURRICULARS
 

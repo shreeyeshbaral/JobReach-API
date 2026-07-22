@@ -7,6 +7,44 @@ import { generateGeminiTailoredResume } from './gemini.js';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
 
+function normalizeResumeLink(value = '', type = 'social') {
+  if (!value || typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  if (type === 'github') {
+    return `https://github.com/${trimmed.replace(/^@/, '')}`;
+  }
+
+  if (type === 'linkedin') {
+    return `https://www.linkedin.com/in/${trimmed.replace(/^@/, '')}`;
+  }
+
+  return trimmed;
+}
+
+export function formatResumeContactLine({
+  candidateEmail = '',
+  candidatePhone = '',
+  candidateLinkedin = '',
+  candidateGithub = ''
+} = {}) {
+  const parts = [];
+  if (candidatePhone) parts.push(candidatePhone);
+  if (candidateEmail) parts.push(candidateEmail);
+
+  const socialLinks = [];
+  const linkedinLink = normalizeResumeLink(candidateLinkedin, 'linkedin');
+  const githubLink = normalizeResumeLink(candidateGithub, 'github');
+  if (linkedinLink) socialLinks.push(linkedinLink);
+  if (githubLink) socialLinks.push(githubLink);
+  if (socialLinks.length > 0) parts.push(socialLinks.join(' | '));
+
+  return parts.join(' | ');
+}
+
 /**
  * Generates a customised PDF resume tailored to a specific job post using Gemini 2.5 AI.
  * If oldResumePath is provided, extracts text from the uploaded PDF and uses Gemini
@@ -16,6 +54,8 @@ export async function buildCustomResume({
   candidateName = '',
   candidateEmail = '',
   candidatePhone = '',
+  candidateLinkedin = '',
+  candidateGithub = '',
   recruiterName = '',
   summary = '',
   experience = '',
@@ -120,13 +160,18 @@ export async function buildCustomResume({
       .text(candidateName.toUpperCase(), { align: 'center', characterSpacing: 2 });
 
     // Contact line
-    const contactParts = [candidateEmail, candidatePhone].filter(Boolean);
-    if (contactParts.length) {
+    const contactLine = formatResumeContactLine({
+      candidateEmail: finalEmail || candidateEmail,
+      candidatePhone: finalPhone || candidatePhone,
+      candidateLinkedin,
+      candidateGithub
+    });
+    if (contactLine) {
       doc.moveDown(0.3);
       doc.fontSize(10)
         .fillColor(COLORS.muted)
         .font('Helvetica')
-        .text(contactParts.join('  |  '), { align: 'center' });
+        .text(contactLine, { align: 'center' });
     }
 
     // Thin line separator
@@ -365,12 +410,19 @@ export async function generatePDFFromStructuredResume(resumeObj, { jobTitle = ''
       .font('Helvetica-Bold')
       .text((resumeObj.candidateName || 'CANDIDATE NAME').toUpperCase(), { align: 'center', characterSpacing: 1.5 });
 
-    if (resumeObj.contactHeader) {
+    const contactHeader = formatResumeContactLine({
+      candidateEmail: resumeObj.candidateEmail || '',
+      candidatePhone: resumeObj.candidatePhone || '',
+      candidateLinkedin: resumeObj.candidateLinkedin || '',
+      candidateGithub: resumeObj.candidateGithub || ''
+    });
+
+    if (contactHeader) {
       doc.moveDown(0.2);
       doc.fontSize(9.5)
         .fillColor(COLORS.muted)
         .font('Helvetica')
-        .text(resumeObj.contactHeader, { align: 'center' });
+        .text(contactHeader, { align: 'center' });
     }
 
     doc.moveDown(0.4);
@@ -381,6 +433,44 @@ export async function generatePDFFromStructuredResume(resumeObj, { jobTitle = ''
       .lineWidth(0.75)
       .stroke();
     doc.moveDown(0.4);
+    doc.moveDown(0.4);
+
+    // 1.5 SUMMARY
+    const summary = resumeObj.candidateSummary || resumeObj.summary || resumeObj.professionalSummary;
+    if (summary && typeof summary === 'string' && summary.trim().length > 0) {
+      drawSectionHeading('PROFESSIONAL SUMMARY');
+      doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(summary.trim(), { lineGap: 2 });
+      doc.moveDown(0.3);
+    }
+
+    // 1.6 EXPERIENCE
+    const experience = resumeObj.candidateExperience || resumeObj.experience || resumeObj.workExperience;
+    if (experience) {
+      if (typeof experience === 'string' && experience.trim().length > 0) {
+        drawSectionHeading('WORK EXPERIENCE');
+        doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(experience.trim(), { lineGap: 2 });
+        doc.moveDown(0.3);
+      } else if (Array.isArray(experience) && experience.length > 0) {
+        drawSectionHeading('WORK EXPERIENCE');
+        for (const exp of experience) {
+          if (typeof exp === 'string') {
+            doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(exp.trim(), { lineGap: 2 });
+          } else {
+            if (exp.jobTitle || exp.company) {
+               doc.fontSize(10).fillColor(COLORS.primary).font('Helvetica-Bold')
+                  .text(`${exp.jobTitle || ''}${exp.jobTitle && exp.company ? ' at ' : ''}${exp.company || ''}${exp.dates ? '  |  ' + exp.dates : ''}`, { lineGap: 1 });
+            }
+            if (Array.isArray(exp.bullets)) {
+              for (const b of exp.bullets) {
+                const cleanBullet = b.replace(/^[-•*●]\s*/, '');
+                doc.fontSize(9.5).fillColor(COLORS.text).font('Helvetica').text(`  \u2022  ${cleanBullet}`, { lineGap: 2, indent: 6 });
+              }
+            }
+          }
+          doc.moveDown(0.3);
+        }
+      }
+    }
 
     // 2. PROJECTS
     if (Array.isArray(resumeObj.projects) && resumeObj.projects.length > 0) {

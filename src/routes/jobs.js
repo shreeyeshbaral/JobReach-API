@@ -2,15 +2,15 @@ import { Router } from 'express';
 import multer from 'multer';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { filterRecentPosts, allowedEmail, generateDynamicHook } from '../utils/jobs.js';
+import { filterRecentPosts, allowedEmail, generateDynamicHook, validateJobData, formatTemplateWithVariables } from '../utils/jobs.js';
 import { sendApplication } from '../services/mailer.js';
 import { buildCustomResume, generatePDFFromStructuredResume } from '../services/resumeBuilder.js';
-import { 
-  parseResumeWithAI, 
-  parseScannedResumeWithVisionAI, 
-  generateStructuredResumeFromManualInput, 
-  tailorResumeSkillsOnlyWithGemini, 
-  formatResumeToMarkdown 
+import {
+  parseResumeWithAI,
+  parseScannedResumeWithVisionAI,
+  generateStructuredResumeFromManualInput,
+  tailorResumeSkillsOnlyWithGemini,
+  formatResumeToMarkdown
 } from '../services/gemini.js';
 import { saveRecruiterRecord, recordEmailSent, getOutreachHistory, markRecruiterReplied, getRecruiterRecords } from '../services/db.js';
 
@@ -94,7 +94,7 @@ router.post('/generate-resume', async (req, res) => {
 
     console.log('[API] Processing manual resume text via Gemini AI...');
     const resumeObj = await generateStructuredResumeFromManualInput(rawResumeText);
-    
+
     res.json({
       ok: true,
       resume: resumeObj,
@@ -110,7 +110,7 @@ router.post('/generate-resume', async (req, res) => {
 router.post('/tailor-skills', async (req, res) => {
   try {
     const { baseResume, rawResumeText, jobPostText, jobTitle } = req.body;
-    
+
     let resumeObj = typeof baseResume === 'string' ? JSON.parse(baseResume) : baseResume;
     if (!resumeObj && rawResumeText) {
       resumeObj = await generateStructuredResumeFromManualInput(rawResumeText);
@@ -144,7 +144,7 @@ router.post('/preview-resume', upload.single('resume'), async (req, res) => {
     const {
       candidateName, candidateEmail, candidatePhone, recruiterName,
       candidateSummary, candidateExperience, candidateEducation,
-      candidateSkills, jobPostText, jobTitle, rawResumeText, baseResume
+      candidateSkills, candidateLinkedin, candidateGithub, jobPostingLink, jobPostText, jobTitle, rawResumeText, baseResume
     } = req.body;
 
     let result;
@@ -153,6 +153,16 @@ router.post('/preview-resume', upload.single('resume'), async (req, res) => {
       let resumeObj = typeof baseResume === 'string' ? JSON.parse(baseResume) : baseResume;
       if (!resumeObj && rawResumeText) {
         resumeObj = await generateStructuredResumeFromManualInput(rawResumeText);
+      }
+
+      if (resumeObj) {
+        resumeObj = {
+          ...resumeObj,
+          candidateEmail: candidateEmail || resumeObj.candidateEmail || '',
+          candidatePhone: candidatePhone || resumeObj.candidatePhone || '',
+          candidateLinkedin: candidateLinkedin || resumeObj.candidateLinkedin || '',
+          candidateGithub: candidateGithub || resumeObj.candidateGithub || ''
+        };
       }
 
       if (jobPostText && jobPostText.trim()) {
@@ -169,6 +179,8 @@ router.post('/preview-resume', upload.single('resume'), async (req, res) => {
         candidateName: candidateName || 'Candidate',
         candidateEmail: candidateEmail || '',
         candidatePhone: candidatePhone || '',
+        candidateLinkedin: candidateLinkedin || '',
+        candidateGithub: candidateGithub || '',
         recruiterName: recruiterName || '',
         summary: candidateSummary || '',
         experience: candidateExperience || '',
@@ -210,8 +222,28 @@ router.post('/send', upload.single('resume'), async (req, res) => {
       to, candidateName, jobTitle, company = 'your company', sourceUrl = '', message,
       customiseResume, candidateEmail, candidatePhone, recruiterName,
       candidateSummary, candidateExperience, candidateEducation,
-      candidateSkills, jobPostText, rawResumeText, baseResume
+      candidateSkills, candidateLinkedin, candidateGithub, jobPostingLink, jobPostText, rawResumeText, baseResume
     } = req.body;
+
+    const validation = validateJobData({
+      recruiter_name: recruiterName,
+      job_post_url: sourceUrl || jobPostingLink,
+      job_description: jobPostText,
+      recruiter_email: to,
+      job_title: jobTitle,
+      company_name: company
+    });
+
+    if (!validation.valid && validation.errors.some(e => e.includes('job_post_url') || e.includes('job_description'))) {
+      const errorMsg = `Pre-send validation failed: ${validation.errors.join('; ')}`;
+      console.error(`\n=== JOB PROCESSING DEBUG LOG ===\nJob Title: ${jobTitle}\nCompany: ${company}\nJob URL: ${sourceUrl || jobPostingLink || 'MISSING'}\nJob Description Length: ${(jobPostText || '').length} chars\nRecruiter Name: ${recruiterName || 'Hiring Team'}\nRecruiter Email: ${to}\nResume Generated: NO\nEmail Generated: NO\nEmail Sent: NO\nStatus: FAILED (${errorMsg})\nModule/Function: src/routes/jobs.js / router.post('/send')\n================================\n`);
+      cleanup();
+      return res.status(400).json({ error: errorMsg });
+    }
+
+    const finalRecruiterName = validation.data.recruiter_name;
+    const finalJobPostUrl = validation.data.job_post_url;
+    const finalJobDescription = validation.data.job_description;
 
     const wantsCustomResume = customiseResume === 'true' || customiseResume === true;
 
@@ -238,11 +270,21 @@ router.post('/send', upload.single('resume'), async (req, res) => {
         resumeObj = await generateStructuredResumeFromManualInput(rawResumeText);
       }
 
-      if (wantsCustomResume && jobPostText && jobPostText.trim()) {
+      if (resumeObj) {
+        resumeObj = {
+          ...resumeObj,
+          candidateEmail: candidateEmail || resumeObj.candidateEmail || '',
+          candidatePhone: candidatePhone || resumeObj.candidatePhone || '',
+          candidateLinkedin: candidateLinkedin || resumeObj.candidateLinkedin || '',
+          candidateGithub: candidateGithub || resumeObj.candidateGithub || ''
+        };
+      }
+
+      if (wantsCustomResume && finalJobDescription) {
         console.log(`[Send Pipeline] Tailoring technical skills ONLY for job post: "${jobTitle}"...`);
         resumeObj = await tailorResumeSkillsOnlyWithGemini({
           baseResume: resumeObj,
-          jobPostText,
+          jobPostText: finalJobDescription,
           jobTitle
         });
       }
@@ -257,12 +299,14 @@ router.post('/send', upload.single('resume'), async (req, res) => {
         candidateName,
         candidateEmail: candidateEmail || '',
         candidatePhone: candidatePhone || '',
-        recruiterName: recruiterName || '',
+        candidateLinkedin: candidateLinkedin || '',
+        candidateGithub: candidateGithub || '',
+        recruiterName: finalRecruiterName,
         summary: candidateSummary || '',
         experience: candidateExperience || '',
         education: candidateEducation || '',
         skills: candidateSkills || '',
-        jobPostText: jobPostText || '',
+        jobPostText: finalJobDescription,
         jobTitle,
         oldResumePath: req.file?.path || ''
       });
@@ -275,14 +319,24 @@ router.post('/send', upload.single('resume'), async (req, res) => {
       resumeName = req.file.originalname;
     }
 
-    // Dynamic Hooking: Extract 3 matching tech keywords and build hook sentence
-    const dynamicHook = generateDynamicHook(jobPostText);
+    // Dynamic Hooking & Template Substitution
+    const dynamicHook = generateDynamicHook(finalJobDescription);
+    let text = message ? formatTemplateWithVariables(message, {
+      recruiter_name: finalRecruiterName,
+      job_title: jobTitle,
+      company_name: company,
+      job_post_url: finalJobPostUrl,
+      job_description: finalJobDescription,
+      candidate_name: candidateName,
+      candidate_email: candidateEmail,
+      candidate_phone: candidatePhone,
+      candidate_linkedin: candidateLinkedin,
+      candidate_github: candidateGithub
+    }) : '';
 
-    let text = aiCoverLetter.trim();
     if (!text) {
-      text = message || `Dear ${recruiterName || 'Hiring Manager'},\n\nI saw your recent post regarding a ${jobTitle} opportunity. ${dynamicHook}\n\nI have attached my resume to this email for your review.\n\nKind regards,\n${candidateName}`;
-    } else {
-      text = `${text}\n\n${dynamicHook}`;
+      const socialBlock = [candidateLinkedin, candidateGithub].filter(Boolean).join(' | ');
+      text = `Dear ${finalRecruiterName},\n\nI recently came across your LinkedIn job posting for ${jobTitle} at ${company} and found the opportunity highly aligned with my background. ${dynamicHook}\n\nJob Position:\n${jobTitle}\n\nCompany:\n${company}\n\nLinkedIn Job Post:\n${finalJobPostUrl}\n\nPlease find my tailored resume attached for your consideration.${socialBlock ? `\n\nProfessional links: ${socialBlock}` : ''}\n\nThank you for your time.\n\nBest regards,\n${candidateName}`;
     }
 
     const subject = `Application for ${jobTitle} - ${candidateName}`;
@@ -295,21 +349,24 @@ router.post('/send', upload.single('resume'), async (req, res) => {
       resumeName,
     });
 
+    // Phase 9 Debug Log
+    console.log(`\n=== JOB PROCESSING DEBUG LOG ===\nJob Title: ${jobTitle}\nCompany: ${company}\nJob URL: ${finalJobPostUrl}\nJob Description Length: ${finalJobDescription.length} chars\nRecruiter Name: ${finalRecruiterName}\nRecruiter Email: ${to}\nResume Generated: YES (${wantsCustomResume ? 'Tailored PDF' : 'Standard PDF'})\nEmail Generated: YES\nEmail Sent: SUCCESS (Gmail ID: ${result.id})\nStatus: PASSED\n================================\n`);
+
     // Save to Flat CSV Database (recruiters.csv & email_sent_history.csv)
     saveRecruiterRecord({
-      recruiter_name: recruiterName || 'Recruiter',
+      recruiter_name: finalRecruiterName,
       recruiter_email: to,
       role: jobTitle,
-      post_url: sourceUrl,
-      job_description: jobPostText || '',
+      post_url: finalJobPostUrl,
+      job_description: finalJobDescription,
       email_sent_status: 'sent'
     });
 
     recordEmailSent({
-      recruiter_name: recruiterName || 'Recruiter',
+      recruiter_name: finalRecruiterName,
       recruiter_email: to,
       role: jobTitle,
-      post_url: sourceUrl,
+      post_url: finalJobPostUrl,
       candidate: candidateName,
       email_sent_status: 'sent',
       subject,
@@ -320,7 +377,7 @@ router.post('/send', upload.single('resume'), async (req, res) => {
     });
 
     cleanup();
-    res.json({ ok: true, gmailMessageId: result.id, to, resumeCustomised: wantsCustomResume });
+    res.json({ ok: true, gmailMessageId: result.id, to, recruiterName: finalRecruiterName, resumeCustomised: wantsCustomResume });
   } catch (e) {
     cleanup();
     res.status(500).json({ error: e.message });
@@ -341,7 +398,7 @@ router.post('/send-followups', async (req, res) => {
         const sentDate = new Date(record.timestamp);
         if (sentDate <= cutoff) {
           console.log(`[Follow-Up Pipeline] Sending threaded follow-up to: ${record.recruiter_email}...`);
-          
+
           const followUpSubject = record.subject.startsWith('Re:') ? record.subject : `Re: ${record.subject}`;
           const followUpBody = `Hi ${record.recruiter_name || 'Hiring Manager'},\n\nI am following up on my application sent a few days ago for the ${record.role} position. I remain extremely interested in contributing to your team.\n\nI have re-attached my resume for your convenience.\n\nBest regards,\n${record.candidate}`;
 
@@ -372,7 +429,7 @@ router.get('/check-replies', async (req, res) => {
   try {
     const history = getOutreachHistory();
     const pendingEmails = history.filter(r => r.email_sent_status === 'sent' && r.replied === 0).map(r => r.recruiter_email);
-    
+
     res.json({ ok: true, pendingCount: pendingEmails.length, repliesFound: 0, matchedRecruiters: [] });
   } catch (err) {
     res.status(500).json({ error: err.message });

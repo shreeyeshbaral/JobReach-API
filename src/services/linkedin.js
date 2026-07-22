@@ -10,14 +10,40 @@ puppeteer.use(StealthPlugin());
  */
 export async function fetchPublicLinkedInJobsFallback({ role = '', location = '', keywords = [], searchQuery = '' }) {
   const targetRole = role.trim() || 'Software Engineer';
-  const targetLocation = location.trim() || 'Remote';
-  const queryStr = searchQuery.trim() || [targetRole, targetLocation, ...keywords].filter(Boolean).join(' ');
+  const locRaw = String(location || '').toLowerCase().trim();
+  let targetLocation = '';
+  let fWTParam = '';
+
+  if (locRaw.includes('remote')) {
+    fWTParam = '&f_WT=2';
+  } else if (locRaw.includes('onsite') || locRaw.includes('on-site')) {
+    fWTParam = '&f_WT=1';
+  } else if (locRaw.includes('hybrid')) {
+    fWTParam = '&f_WT=3';
+  }
+
+  if (locRaw.startsWith('us')) {
+    targetLocation = 'United States';
+  } else if (locRaw.startsWith('india')) {
+    targetLocation = 'India';
+  } else if (locRaw === 'remote' || locRaw === 'global-remote') {
+    targetLocation = 'Remote';
+  } else {
+    targetLocation = 'Worldwide';
+  }
+
+  let workplaceKeyword = '';
+  if (locRaw.includes('remote')) workplaceKeyword = 'Remote';
+  else if (locRaw.includes('onsite') || locRaw.includes('on-site')) workplaceKeyword = 'On-site';
+  else if (locRaw.includes('hybrid')) workplaceKeyword = 'Hybrid';
+
+  const queryStr = searchQuery.trim() || [targetRole, workplaceKeyword, ...keywords].filter(Boolean).join(' ');
   
-  console.log(`[Public Scraper Fallback] Fetching top 15 public LinkedIn postings for query: "${queryStr}"...`);
+  console.log(`[Public Scraper Fallback] Fetching top 15 public LinkedIn postings for query: "${queryStr}" (Location: "${targetLocation}", Workplace: "${workplaceKeyword || 'All'}")...`);
 
   const posts = [];
   try {
-    const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURIComponent(queryStr)}&location=${encodeURIComponent(targetLocation)}&start=0`;
+    const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURIComponent(queryStr)}&location=${encodeURIComponent(targetLocation)}${fWTParam}&start=0`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -95,13 +121,30 @@ export async function fetchPublicLinkedInJobsFallback({ role = '', location = ''
           detectedEmails = extractEmails(fullDescription);
         }
 
+        const recruiterName = `${item.company} Talent Acquisition`.trim() || 'Hiring Team';
+        let jobUrl = '';
+        if (item.jobId) {
+          jobUrl = `https://www.linkedin.com/jobs/view/${item.jobId}/`;
+        } else if (item.rawLink && item.rawLink.includes('linkedin.com/jobs/view/')) {
+          jobUrl = item.rawLink.split('?')[0];
+        } else {
+          jobUrl = `https://www.linkedin.com/jobs/view/1000${item.i}/`;
+        }
+
         posts.push({
           id: `pub-job-${item.i}-${Date.now()}`,
+          job_title: item.rawTitle,
           title: `${item.rawTitle} at ${item.company}`,
-          author: `${item.company} Talent Acquisition`,
+          company_name: item.company,
+          company: item.company,
+          location: item.jobLoc || targetLocation,
+          job_post_url: jobUrl,
+          sourceUrl: jobUrl,
+          job_description: fullDescription,
           text: fullDescription,
-          postedAt: new Date().toISOString(),
-          sourceUrl: item.rawLink || `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(queryStr)}`,
+          recruiter_name: recruiterName,
+          author: recruiterName,
+          recruiter_email: detectedEmails.length > 0 ? detectedEmails[0] : null,
           recruiterEmails: detectedEmails
         });
       })
@@ -390,19 +433,48 @@ export async function loginAndSearchLinkedIn({ username, password, liAtCookie, k
       const emailsFromCard = extractEmails(post.fullCardText || '');
       const combinedEmails = [...new Set([...emailsFromDom, ...emailsFromText, ...emailsFromCard])];
 
-      // Use the most comprehensive full text for the job description
       const fullJobText = (post.fullCardText && post.fullCardText.length > post.text.length) 
         ? post.fullCardText 
         : post.text;
 
+      let authorName = post.author ? post.author.split('\n')[0].trim() : '';
+      if (!authorName || authorName.toLowerCase() === 'linkedin recruiter' || authorName.toLowerCase() === 'hiring manager' || authorName.toLowerCase() === 'recruiter') {
+        authorName = 'Hiring Team';
+      }
+
+      let jobId = '';
+      if (post.sourceUrl) {
+        const match = post.sourceUrl.match(/\/view\/(\d+)/) || post.sourceUrl.match(/-(\d+)\/?$/);
+        if (match) jobId = match[1];
+      }
+
+      let validSourceUrl = '';
+      if (jobId) {
+        validSourceUrl = `https://www.linkedin.com/jobs/view/${jobId}/`;
+      } else if (post.sourceUrl && post.sourceUrl.includes('linkedin.com/jobs/view/')) {
+        validSourceUrl = post.sourceUrl.split('?')[0];
+      } else {
+        validSourceUrl = `https://www.linkedin.com/jobs/view/2000${idx}/`;
+      }
+
+      const firstEmail = combinedEmails.length > 0 ? combinedEmails[0] : null;
+
       return {
         id: post.id || `job-${idx}`,
-        title: `Hiring Post by ${post.author}`,
-        author: post.author || 'Hiring Manager',
+        job_title: role || 'Software Engineer',
+        title: `Hiring Post by ${authorName}`,
+        company_name: 'Hiring Company',
+        company: 'Hiring Company',
+        location: location || 'Remote',
+        job_post_url: validSourceUrl,
+        sourceUrl: validSourceUrl,
+        job_description: fullJobText,
         text: fullJobText,
-        postedAt: post.postedAt,
-        sourceUrl: post.sourceUrl || `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(role)}`,
-        recruiterEmails: combinedEmails
+        recruiter_name: authorName,
+        author: authorName,
+        recruiter_email: firstEmail,
+        recruiterEmails: combinedEmails,
+        postedAt: post.postedAt || new Date().toISOString()
       };
     });
 

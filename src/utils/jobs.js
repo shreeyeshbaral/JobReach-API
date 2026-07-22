@@ -206,3 +206,109 @@ export function matchesStrictFilter(text = '', targetRole = '') {
 
   return true;
 }
+
+/**
+ * Validates job data prior to AI resume tailoring and email dispatch per Phase 8 requirements.
+ * Ensures recruiter_name falls back to "Hiring Team" and rejects jobs missing job_post_url or job_description.
+ */
+export function validateJobData(job = {}) {
+  const errors = [];
+
+  // 1. Recruiter Name (Phase 4 & 8: fallback to "Hiring Team" if unavailable)
+  let recruiter_name = (job.recruiter_name || job.author || job.recruiterName || '').trim();
+  if (!recruiter_name || recruiter_name.toLowerCase() === 'recruiter' || recruiter_name.toLowerCase() === 'linkedin recruiter' || recruiter_name.toLowerCase() === 'hiring manager') {
+    recruiter_name = 'Hiring Team';
+  }
+
+  // 2. LinkedIn Job Posting URL (Phase 2 & 10: MUST contain linkedin.com/jobs/view/)
+  let job_post_url = (job.job_post_url || job.sourceUrl || job.post_url || job.jobPostingLink || '').trim();
+  if (!job_post_url || !job_post_url.includes('linkedin.com/jobs/view/')) {
+    errors.push(`Invalid job_post_url (must be an exact LinkedIn Job Posting URL containing "linkedin.com/jobs/view/"). Extracted URL was: "${job_post_url || 'empty'}"`);
+  }
+
+  // 3. Complete Job Description (Phase 3 & 10: min 40 chars, not placeholder)
+  let job_description = (job.job_description || job.text || job.jobPostText || '').trim();
+  if (!job_description || job_description.length < 40 || job_description.toLowerCase().includes('placeholder job description')) {
+    errors.push('Missing or insufficient job_description (minimum 40 characters required)');
+  }
+
+  // 4. Recruiter Email (Phase 4: null if unavailable, no guessing)
+  let recruiter_email = (job.recruiter_email || job.to || (Array.isArray(job.recruiterEmails) ? job.recruiterEmails[0] : null) || null);
+  if (recruiter_email && typeof recruiter_email === 'string') {
+    recruiter_email = recruiter_email.trim().toLowerCase();
+    if (!recruiter_email.includes('@')) recruiter_email = null;
+  }
+
+  // 5. Job Title & Company Name
+  const job_title = (job.job_title || job.title || job.jobTitle || 'Software Engineer').trim();
+  const company_name = (job.company_name || job.company || 'Hiring Company').trim();
+
+  if (!job_title) errors.push('Missing job_title');
+  if (!company_name) errors.push('Missing company_name');
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    data: {
+      recruiter_name,
+      job_post_url,
+      job_description,
+      recruiter_email,
+      job_title,
+      company_name
+    }
+  };
+}
+
+/**
+ * Dynamic Template Injector per Phase 7 & 9 requirements.
+ * Supports both Handlebars {{ variable_name }} and Bracket [Variable Name] placeholders.
+ */
+export function formatTemplateWithVariables(templateStr = '', vars = {}) {
+  if (!templateStr || typeof templateStr !== 'string') return '';
+
+  let recruiter_name = vars.recruiter_name || vars.author || vars.recruiterName || 'Hiring Team';
+  if (recruiter_name.toLowerCase() === 'recruiter' || recruiter_name.toLowerCase() === 'linkedin recruiter') {
+    recruiter_name = 'Hiring Team';
+  }
+
+  const job_title = vars.job_title || vars.jobTitle || vars.title || 'Software Engineer';
+  const company_name = vars.company_name || vars.company || 'Hiring Company';
+  const job_post_url = vars.job_post_url || vars.sourceUrl || vars.jobPostingLink || vars.post_url || '';
+  const job_description = vars.job_description || vars.jobPostText || vars.text || '';
+
+  const cand_name = vars.candidate_name || vars.candName || vars.candidateName || 'Candidate';
+  const cand_email = vars.candidate_email || vars.candEmail || vars.candidateEmail || '';
+  const cand_phone = vars.candidate_phone || vars.candPhone || vars.candidatePhone || '';
+  const cand_linkedin = vars.candidate_linkedin || vars.candLinkedin || vars.candidateLinkedin || '';
+  const cand_github = vars.candidate_github || vars.candGithub || vars.candidateGithub || '';
+
+  let output = templateStr
+    // Handlebars placeholders {{ variable }}
+    .replace(/\{\{\s*recruiter_name\s*\}\}/gi, recruiter_name)
+    .replace(/\{\{\s*job_title\s*\}\}/gi, job_title)
+    .replace(/\{\{\s*company_name\s*\}\}/gi, company_name)
+    .replace(/\{\{\s*job_post_url\s*\}\}/gi, job_post_url)
+    .replace(/\{\{\s*job_description\s*\}\}/gi, job_description)
+    .replace(/\{\{\s*candidate_name\s*\}\}/gi, cand_name)
+    .replace(/\{\{\s*candidate_email\s*\}\}/gi, cand_email)
+    .replace(/\{\{\s*candidate_phone\s*\}\}/gi, cand_phone)
+    .replace(/\{\{\s*candidate_linkedin\s*\}\}/gi, cand_linkedin)
+    .replace(/\{\{\s*candidate_github\s*\}\}/gi, cand_github)
+    // Bracket placeholders [Variable Name]
+    .replace(/\[Recruiter Name\]/gi, recruiter_name)
+    .replace(/\[Job Title\]/gi, job_title)
+    .replace(/\[Company Name\]/gi, company_name)
+    .replace(/\[Company\]/gi, company_name)
+    .replace(/\[Job Source URL\]/gi, job_post_url)
+    .replace(/\[Job Posting Link\]/gi, job_post_url)
+    .replace(/\[Job Post Description\]/gi, job_description)
+    .replace(/\[Candidate Name\]/gi, cand_name)
+    .replace(/\[Candidate Email\]/gi, cand_email)
+    .replace(/\[Candidate Phone\]/gi, cand_phone)
+    .replace(/\[Candidate LinkedIn Profile\]/gi, cand_linkedin)
+    .replace(/\[Candidate GitHub Profile\]/gi, cand_github);
+
+  return output;
+}
+

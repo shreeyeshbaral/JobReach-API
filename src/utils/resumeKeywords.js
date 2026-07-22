@@ -162,3 +162,155 @@ function capitaliseSkill(skill) {
   if (upperCaseWords.has(skill)) return skill.toUpperCase();
   return skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
+
+const SKILL_CATEGORY_MAP = {
+  // Languages
+  'javascript': 'Languages', 'typescript': 'Languages', 'python': 'Languages', 'java': 'Languages',
+  'c#': 'Languages', 'c++': 'Languages', 'ruby': 'Languages', 'php': 'Languages', 'go': 'Languages',
+  'golang': 'Languages', 'rust': 'Languages', 'swift': 'Languages', 'kotlin': 'Languages', 'scala': 'Languages',
+  'html': 'Languages', 'html5': 'Languages', 'css': 'Languages', 'css3': 'Languages', 'sass': 'Languages',
+  'scss': 'Languages', 'sql': 'Languages', 'r': 'Languages', 'dart': 'Languages', 'elixir': 'Languages',
+
+  // Frameworks & Libraries
+  'react': 'Frameworks & Libraries', 'reactjs': 'Frameworks & Libraries', 'react.js': 'Frameworks & Libraries',
+  'angular': 'Frameworks & Libraries', 'angularjs': 'Frameworks & Libraries', 'vue': 'Frameworks & Libraries',
+  'vuejs': 'Frameworks & Libraries', 'vue.js': 'Frameworks & Libraries', 'next.js': 'Frameworks & Libraries',
+  'nextjs': 'Frameworks & Libraries', 'nuxt': 'Frameworks & Libraries', 'express': 'Frameworks & Libraries',
+  'expressjs': 'Frameworks & Libraries', 'fastapi': 'Frameworks & Libraries', 'flask': 'Frameworks & Libraries',
+  'django': 'Frameworks & Libraries', 'spring': 'Frameworks & Libraries', 'spring boot': 'Frameworks & Libraries',
+  'springboot': 'Frameworks & Libraries', 'node.js': 'Frameworks & Libraries', 'nodejs': 'Frameworks & Libraries',
+  'nest.js': 'Frameworks & Libraries', 'nestjs': 'Frameworks & Libraries', 'tailwind': 'Frameworks & Libraries',
+  'tailwindcss': 'Frameworks & Libraries', 'tailwind css': 'Frameworks & Libraries', 'bootstrap': 'Frameworks & Libraries',
+  'vite': 'Frameworks & Libraries', 'recharts': 'Frameworks & Libraries', 'redux': 'Frameworks & Libraries',
+  'react native': 'Frameworks & Libraries', 'flutter': 'Frameworks & Libraries', 'jquery': 'Frameworks & Libraries',
+  'material ui': 'Frameworks & Libraries', 'chakra ui': 'Frameworks & Libraries',
+
+  // Databases & Storage
+  'mysql': 'Databases', 'postgresql': 'Databases', 'postgres': 'Databases', 'mongodb': 'Databases',
+  'redis': 'Databases', 'elasticsearch': 'Databases', 'dynamodb': 'Databases', 'sqlite': 'Databases',
+  'oracle': 'Databases', 'firestore': 'Databases', 'cloud firestore': 'Databases', 'supabase': 'Databases',
+  'prisma': 'Databases', 'mariadb': 'Databases', 'cassandra': 'Databases', 'couchdb': 'Databases',
+
+  // Cloud & DevOps
+  'aws': 'Cloud & DevOps', 'gcp': 'Cloud & DevOps', 'google cloud': 'Cloud & DevOps', 'azure': 'Cloud & DevOps',
+  'docker': 'Cloud & DevOps', 'kubernetes': 'Cloud & DevOps', 'k8s': 'Cloud & DevOps', 'terraform': 'Cloud & DevOps',
+  'jenkins': 'Cloud & DevOps', 'ci/cd': 'Cloud & DevOps', 'github actions': 'Cloud & DevOps',
+  'github actions (ci/cd)': 'Cloud & DevOps', 'gitlab ci': 'Cloud & DevOps', 'linux': 'Cloud & DevOps',
+  'unix': 'Cloud & DevOps', 'nginx': 'Cloud & DevOps', 'firebase': 'Cloud & DevOps',
+  'firebase authentication': 'Cloud & DevOps', 'firebase hosting': 'Cloud & DevOps', 'ansible': 'Cloud & DevOps',
+
+  // AI & ML
+  'artificial intelligence': 'AI & ML', 'ai': 'AI & ML', 'machine learning': 'AI & ML', 'deep learning': 'AI & ML',
+  'nlp': 'AI & ML', 'natural language processing': 'AI & ML', 'google gemini ai': 'AI & ML', 'gemini ai': 'AI & ML',
+  'tensorflow': 'AI & ML', 'pytorch': 'AI & ML', 'keras': 'AI & ML', 'scikit-learn': 'AI & ML',
+  'pandas': 'AI & ML', 'numpy': 'AI & ML', 'computer vision': 'AI & ML',
+
+  // Tools & Platforms
+  'git': 'Tools & Platforms', 'github': 'Tools & Platforms', 'gitlab': 'Tools & Platforms',
+  'figma': 'Tools & Platforms', 'canva': 'Tools & Platforms', 'rest apis': 'Tools & Platforms',
+  'rest api': 'Tools & Platforms', 'rest': 'Tools & Platforms', 'graphql': 'Tools & Platforms',
+  'postman': 'Tools & Platforms', 'jira': 'Tools & Platforms', 'agile': 'Tools & Platforms',
+  'scrum': 'Tools & Platforms', 'webpack': 'Tools & Platforms', 'babel': 'Tools & Platforms'
+};
+
+function canonicalizeSkillKey(key) {
+  if (['react', 'reactjs', 'react.js'].includes(key)) return 'react.js';
+  if (['vue', 'vuejs', 'vue.js'].includes(key)) return 'vue.js';
+  if (['node', 'nodejs', 'node.js'].includes(key)) return 'node.js';
+  if (['express', 'expressjs'].includes(key)) return 'express';
+  if (['next', 'nextjs', 'next.js'].includes(key)) return 'next.js';
+  if (['postgres', 'postgresql'].includes(key)) return 'postgresql';
+  if (['tailwind', 'tailwindcss', 'tailwind css'].includes(key)) return 'tailwind css';
+  if (['gemini', 'gemini ai', 'google gemini ai'].includes(key)) return 'google gemini ai';
+  if (['spring', 'springboot', 'spring boot'].includes(key)) return 'spring boot';
+  return key;
+}
+
+function inferCategory(key) {
+  if (key.includes('language') || key.includes('script')) return 'Languages';
+  if (key.includes('db') || key.includes('sql') || key.includes('store') || key.includes('data')) return 'Databases';
+  if (key.includes('cloud') || key.includes('aws') || key.includes('docker') || key.includes('ci/cd') || key.includes('ops')) return 'Cloud & DevOps';
+  if (key.includes('ai') || key.includes('ml') || key.includes('learning') || key.includes('gpt') || key.includes('model')) return 'AI & ML';
+  if (key.includes('framework') || key.includes('ui') || key.includes('css') || key.includes('api')) return 'Frameworks & Libraries';
+  return 'Tools & Platforms';
+}
+
+/**
+ * Compare, deduplicate, and categorize technical skills into domain lines
+ * (Languages, Frameworks & Libraries, Databases, Cloud & DevOps, AI & ML, Tools & Platforms)
+ */
+export function categorizeAndDeduplicateSkills(existingSkills = [], newSkills = []) {
+  const normalizeInput = (input) => {
+    let rawList = [];
+    if (typeof input === 'string') rawList = [input];
+    else if (Array.isArray(input)) rawList = input;
+
+    const tokens = [];
+    for (const item of rawList) {
+      if (!item) continue;
+      let cleaned = String(item).replace(/^[-•*●]\s*/, '');
+      if (cleaned.includes(':')) {
+        const parts = cleaned.split(':');
+        cleaned = parts.slice(1).join(':');
+      }
+      const splitSkills = cleaned.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+      tokens.push(...splitSkills);
+    }
+    return tokens;
+  };
+
+  const allRaw = [...normalizeInput(existingSkills), ...normalizeInput(newSkills)];
+
+  const seen = new Set();
+  const categories = {
+    'Languages': [],
+    'Frameworks & Libraries': [],
+    'Databases': [],
+    'Cloud & DevOps': [],
+    'AI & ML': [],
+    'Tools & Platforms': [],
+    'Other Skills': []
+  };
+
+  for (const rawSkill of allRaw) {
+    const trimmed = rawSkill.trim();
+    if (!trimmed) continue;
+
+    const lowerKey = trimmed.toLowerCase()
+      .replace(/\s+/g, ' ')
+      .replace(/^(the|a)\s+/i, '');
+
+    const canonKey = canonicalizeSkillKey(lowerKey);
+    if (seen.has(canonKey)) continue;
+    seen.add(canonKey);
+
+    const displaySkill = capitaliseSkill(trimmed);
+    const cat = SKILL_CATEGORY_MAP[lowerKey] || SKILL_CATEGORY_MAP[canonKey] || inferCategory(lowerKey);
+
+    if (categories[cat]) {
+      categories[cat].push(displaySkill);
+    } else {
+      categories['Other Skills'].push(displaySkill);
+    }
+  }
+
+  const resultLines = [];
+  const categoryOrder = [
+    'Languages',
+    'Frameworks & Libraries',
+    'Databases',
+    'Cloud & DevOps',
+    'AI & ML',
+    'Tools & Platforms',
+    'Other Skills'
+  ];
+
+  for (const cat of categoryOrder) {
+    if (categories[cat] && categories[cat].length > 0) {
+      resultLines.push(`${cat}: ${categories[cat].join(', ')}`);
+    }
+  }
+
+  return resultLines;
+}
+

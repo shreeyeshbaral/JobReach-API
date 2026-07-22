@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { extractResumeKeywords } from '../utils/resumeKeywords.js';
+import { extractResumeKeywords, categorizeAndDeduplicateSkills } from '../utils/resumeKeywords.js';
 
 /**
  * Uses Gemini API (gemini-2.5-flash) to generate a tailored resume profile
@@ -483,6 +483,40 @@ export function formatResumeToMarkdown(resumeObj) {
     lines.push('');
   }
 
+  const summary = resumeObj.candidateSummary || resumeObj.summary || resumeObj.professionalSummary;
+  if (summary && typeof summary === 'string' && summary.trim().length > 0) {
+    lines.push('PROFESSIONAL SUMMARY');
+    lines.push('');
+    lines.push(summary.trim());
+    lines.push('');
+  }
+
+  const experience = resumeObj.candidateExperience || resumeObj.experience || resumeObj.workExperience;
+  if (experience) {
+    lines.push('WORK EXPERIENCE');
+    lines.push('');
+    if (typeof experience === 'string') {
+      lines.push(experience.trim());
+    } else if (Array.isArray(experience) && experience.length > 0) {
+      for (const exp of experience) {
+        if (typeof exp === 'string') {
+          lines.push(exp);
+        } else {
+          if (exp.company || exp.jobTitle) {
+            lines.push(`${exp.jobTitle || ''}${exp.jobTitle && exp.company ? ' at ' : ''}${exp.company || ''}${exp.dates ? ' | ' + exp.dates : ''}`);
+          }
+          if (Array.isArray(exp.bullets)) {
+            for (const b of exp.bullets) {
+              lines.push(`● ${b.replace(/^[-•*●]\s*/, '')}`);
+            }
+          }
+        }
+        lines.push('');
+      }
+    }
+    lines.push('');
+  }
+
   if (Array.isArray(resumeObj.projects) && resumeObj.projects.length > 0) {
     lines.push('PROJECTS');
     lines.push('');
@@ -580,6 +614,17 @@ JSON SCHEMA REQUIREMENTS:
   "candidateExperienceYears": "Total experience",
   "candidateSalary": "Expected salary / C2C",
   "contactHeader": "Phone | Email | LinkedIn | GitHub (e.g. +91 6370893235 | shreeyesh7817@gmail.com | LinkedIn | GitHub)",
+  "professionalSummary": "Professional summary paragraph",
+  "workExperience": [
+    {
+      "company": "Company Name",
+      "jobTitle": "Job Title",
+      "dates": "Start Date - End Date",
+      "bullets": [
+        "Responsibility or achievement 1"
+      ]
+    }
+  ],
   "projects": [
     {
       "title": "Project Title – Short Tagline",
@@ -604,8 +649,12 @@ JSON SCHEMA REQUIREMENTS:
     "NCC 'A' Certificate from Unit 6 Odisha Battalion NCC"
   ],
   "technicalSkills": [
-    "React.js, Vite, Tailwind CSS, Firebase, Google Gemini AI",
-    "Java, JavaScript, TypeScript, Python, HTML5, CSS3"
+    "Languages: Java, JavaScript, TypeScript, Python, HTML5, CSS3",
+    "Frameworks & Libraries: React.js, Vite, Tailwind CSS",
+    "Databases: Cloud Firestore, MySQL, PostgreSQL",
+    "Cloud & DevOps: Firebase, GitHub Actions (CI/CD), Docker, Linux",
+    "AI & ML: Google Gemini AI",
+    "Tools & Platforms: Git, GitHub, Figma, Canva"
   ],
   "extracurriculars": [
     "Tech Team, Coding Ninjas 10XOC ITER...",
@@ -626,6 +675,9 @@ Return ONLY valid JSON. Preserve all details accurately without dropping experie
         config: { responseMimeType: 'application/json' }
       });
       const parsed = JSON.parse(response.text);
+      if (Array.isArray(parsed.technicalSkills)) {
+        parsed.technicalSkills = categorizeAndDeduplicateSkills(parsed.technicalSkills);
+      }
       parsed.formattedMarkdown = formatResumeToMarkdown(parsed);
       return parsed;
     } catch (e) {
@@ -652,6 +704,9 @@ Return ONLY valid JSON. Preserve all details accurately without dropping experie
       if (res.ok) {
         const data = await res.json();
         const parsed = JSON.parse(data.choices[0].message.content);
+        if (Array.isArray(parsed.technicalSkills)) {
+          parsed.technicalSkills = categorizeAndDeduplicateSkills(parsed.technicalSkills);
+        }
         parsed.formattedMarkdown = formatResumeToMarkdown(parsed);
         return parsed;
       }
@@ -667,6 +722,7 @@ Return ONLY valid JSON. Preserve all details accurately without dropping experie
 /**
  * Tailors ONLY the "technicalSkills" section of a candidate's resume according to the Job Description (JD),
  * keeping candidateName, contactHeader, projects, education, certifications, and extracurriculars COMPLETELY UNCHANGED.
+ * Deduplicates new skills with existing skills and groups skills into domain categories (Languages, Databases, DevOps, etc.).
  */
 export async function tailorResumeSkillsOnlyWithGemini({ baseResume, jobPostText = '', jobTitle = '' }) {
   if (!baseResume) return null;
@@ -689,16 +745,22 @@ Candidate's Current Technical Skills:
 ${currentSkills}
 """
 
-CRITICAL RULE — SKILL-ONLY MODIFICATION:
-- Modify ONLY the "technicalSkills" array to highlight, reorder, or add key required technologies and tools specified in the Job Description.
-- Do NOT touch, modify, fabricate, or change candidateName, contactHeader, projects, education, certifications, or extracurriculars under ANY circumstances.
+CRITICAL RULE — SKILL-ONLY & CATEGORIZED DEDUPLICATED MODIFICATION:
+- Modify ONLY the "technicalSkills" array.
+- Compare required skills from the Job Description against the candidate's existing skills to AVOID duplication/repetition.
+- Group all technical skills into distinct domain categories (e.g. "Languages: ...", "Frameworks & Libraries: ...", "Databases: ...", "Cloud & DevOps: ...", "AI & ML: ...", "Tools & Platforms: ...").
+- Do NOT create generic headers like "Targeted Skills" or "Target Role Skills". Put newly added skills directly into their actual domain category (Languages, Databases, DevOps, etc.).
 - Return the EXACT input projects, education, certifications, and extracurriculars unchanged!
 
 Return JSON format:
 {
   "technicalSkills": [
-    "Skill line 1 tailored for role...",
-    "Skill line 2 tailored for role..."
+    "Languages: Java, JavaScript, Python",
+    "Frameworks & Libraries: React.js, FastAPI, Node.js",
+    "Databases: PostgreSQL, MongoDB",
+    "Cloud & DevOps: Docker, AWS, Kubernetes",
+    "AI & ML: Google Gemini AI",
+    "Tools & Platforms: Git, GitHub, Figma"
   ]
 }`;
 
@@ -749,24 +811,17 @@ Return JSON format:
     }
   }
 
-  // Fallback to local keyword extraction if AI fails
-  if (!newSkills) {
-    const extracted = extractResumeKeywords(jobPostText);
-    if (extracted.skills && extracted.skills.length > 0) {
-      const topSkills = extracted.skills.join(', ');
-      newSkills = [
-        `Target Role Skills: ${topSkills}`,
-        ...(Array.isArray(baseResume.technicalSkills) ? baseResume.technicalSkills : [])
-      ];
-    } else {
-      newSkills = baseResume.technicalSkills || [];
-    }
-  }
+  // Deduplicate and categorize skills against existing skills + JD extracted skills
+  const extractedFromJd = extractResumeKeywords(jobPostText).skills;
+  const finalCategorizedSkills = categorizeAndDeduplicateSkills(
+    newSkills || baseResume.technicalSkills || [],
+    extractedFromJd
+  );
 
   // Construct tailored resume object: ONLY technicalSkills changed!
   const tailored = {
     ...baseResume,
-    technicalSkills: newSkills
+    technicalSkills: finalCategorizedSkills
   };
 
   tailored.formattedMarkdown = formatResumeToMarkdown(tailored);
@@ -846,7 +901,7 @@ function parseManualResumeLocally(text) {
     projects: projects.length ? projects : [{ title: 'Chronos AI', bullets: ['Developed productivity app'] }],
     education: education.length ? education : [{ institution: 'SOA University', degree: 'B.Tech CSE', bullets: ['CGPA 7.78'] }],
     certifications: certifications.length ? certifications : ['IBM AI Cert'],
-    technicalSkills: technicalSkills.length ? technicalSkills : ['React.js, Node.js, Python'],
+    technicalSkills: categorizeAndDeduplicateSkills(technicalSkills.length ? technicalSkills : ['React.js, Node.js, Python']),
     extracurriculars: extracurriculars.length ? extracurriculars : ['Tech Team ITER']
   };
 

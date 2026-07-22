@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { extractEmails, filterRecentPosts } from '../src/utils/jobs.js';
 import { extractResumeKeywords } from '../src/utils/resumeKeywords.js';
+import { formatResumeContactLine } from '../src/services/resumeBuilder.js';
 
 // ═══════════════════════════════════════════
 //  Unit Test: Email Extraction Utility
@@ -24,6 +25,21 @@ const samplePosts = [
 const filtered = filterRecentPosts(samplePosts, ['java developer', 'contract'], 24);
 assert.equal(filtered.length, 1);
 assert.deepEqual(filtered[0].recruiterEmails, ['x@example.com']);
+
+// ═══════════════════════════════════════════
+//  Unit Test: Resume Contact Line Formatting
+// ═══════════════════════════════════════════
+console.log('Running unit tests for resume contact formatting...');
+const contactLine = formatResumeContactLine({
+  candidateEmail: 'candidate@example.com',
+  candidatePhone: '+1 555 123 4567',
+  candidateLinkedin: 'https://www.linkedin.com/in/example',
+  candidateGithub: 'https://github.com/example'
+});
+assert.ok(contactLine.includes('candidate@example.com'));
+assert.ok(contactLine.includes('linkedin.com/in/example'));
+assert.ok(contactLine.includes('github.com/example'));
+console.log('  ✓ Contact line includes LinkedIn and GitHub links');
 
 // ═══════════════════════════════════════════
 //  Unit Test: Resume Keyword Extraction
@@ -147,6 +163,81 @@ assert.deepEqual(tailoredResume.education, structuredResume.education, 'Educatio
 assert.deepEqual(tailoredResume.certifications, structuredResume.certifications, 'Certifications MUST be 100% unchanged');
 assert.deepEqual(tailoredResume.extracurriculars, structuredResume.extracurriculars, 'Extracurriculars MUST be 100% unchanged');
 
+// Verify Skill Deduplication & Domain Categorization
+const skillText = tailoredResume.technicalSkills.join('\n');
+assert.ok(!skillText.includes('Target Role Skills'), 'Should not contain "Target Role Skills" prefix');
+assert.ok(!skillText.includes('Targeted Skills'), 'Should not contain "Targeted Skills" prefix');
+assert.ok(skillText.includes('Languages:'), 'Should contain categorized "Languages:" section');
+assert.ok(skillText.includes('Databases:'), 'Should contain categorized "Databases:" section for PostgreSQL');
+assert.ok(skillText.includes('Cloud & DevOps:'), 'Should contain categorized "Cloud & DevOps:" section for Docker');
+
+// Verify Python appears only once in the skills section
+const pythonMatches = skillText.match(/\bPython\b/g) || [];
+assert.equal(pythonMatches.length, 1, 'Python should be deduplicated and appear only once');
+
 console.log('  ✓ Skill-only tailoring verified: Projects, Education, Certifications, and Extracurriculars remained 100% intact!');
+console.log('  ✓ Skill categorization & deduplication verified: Skills categorized by domain without duplicate entries or targeted headers!');
+
+// ═══════════════════════════════════════════
+//  Unit Test: Pre-Send Validation & Template Placeholders (Phases 7 & 8)
+// ═══════════════════════════════════════════
+console.log('Running unit tests for Pre-Send Validation & Template Placeholders...');
+import { validateJobData, formatTemplateWithVariables } from '../src/utils/jobs.js';
+
+// Test 1: Fallback recruiter_name to "Hiring Team" when empty/generic
+const jobNoRecruiter = {
+  title: 'Backend Engineer',
+  company: 'TechCorp',
+  sourceUrl: 'https://www.linkedin.com/jobs/view/123456/',
+  text: 'We are hiring a Backend Engineer to build microservices using Node.js and PostgreSQL. Minimum 3+ years experience.',
+  recruiterEmails: ['recruiter@techcorp.com']
+};
+
+const valRes1 = validateJobData(jobNoRecruiter);
+assert.ok(valRes1.valid, 'Valid job data should pass validation');
+assert.equal(valRes1.data.recruiter_name, 'Hiring Team', 'Empty recruiter name should fall back to "Hiring Team"');
+console.log('  ✓ Recruiter name defaults to "Hiring Team" when unavailable');
+
+// Test 2: Pre-send validation fails when job_post_url or job_description is missing
+const invalidJob = {
+  title: 'Full Stack Dev',
+  author: 'Jane Doe',
+  sourceUrl: '', // missing URL
+  text: 'Too short', // short text < 30 chars
+  recruiterEmails: ['jane@company.com']
+};
+const valRes2 = validateJobData(invalidJob);
+assert.equal(valRes2.valid, false, 'Invalid job with missing URL & short description should fail validation');
+assert.ok(valRes2.errors.length >= 2, 'Should report errors for missing URL and short description');
+console.log('  ✓ Pre-send validation correctly rejects jobs missing job_post_url or sufficient description');
+
+// Test 3: Dynamic template injection supports Handlebars and Bracket placeholders (Phase 7)
+const templateStr = `Dear {{ recruiter_name }},
+
+I recently applied for [Job Title] at {{ company_name }}.
+LinkedIn Job Post: {{ job_post_url }}
+
+Description:
+[Job Post Description]
+
+Best regards,
+{{ candidate_name }}`;
+
+const formatted = formatTemplateWithVariables(templateStr, {
+  recruiter_name: 'Sarah Connor',
+  job_title: 'AI Engineer',
+  company_name: 'Skynet Tech',
+  job_post_url: 'https://www.linkedin.com/jobs/view/999',
+  job_description: 'Building autonomous AI models.',
+  candidate_name: 'Shreeyesh Baral'
+});
+
+assert.ok(formatted.includes('Dear Sarah Connor'), 'Should substitute {{ recruiter_name }}');
+assert.ok(formatted.includes('AI Engineer'), 'Should substitute [Job Title]');
+assert.ok(formatted.includes('Skynet Tech'), 'Should substitute {{ company_name }}');
+assert.ok(formatted.includes('https://www.linkedin.com/jobs/view/999'), 'Should substitute {{ job_post_url }}');
+assert.ok(formatted.includes('Building autonomous AI models.'), 'Should substitute [Job Post Description]');
+assert.ok(formatted.includes('Shreeyesh Baral'), 'Should substitute {{ candidate_name }}');
+console.log('  ✓ Dynamic template injector populates all placeholders without leaving empty tags');
 
 console.log('\nAll core tests passed successfully. ✓');
