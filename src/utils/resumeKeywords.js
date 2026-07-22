@@ -45,10 +45,14 @@ const TECH_KEYWORDS = new Set([
   'git', 'github', 'gitlab', 'bitbucket', 'jira', 'confluence', 'agile', 'scrum',
   'kanban', 'devops', 'sre', 'design patterns', 'solid principles', 'oop',
   'functional programming', 'system design', 'distributed systems',
-  // Soft skills / role descriptors that may appear in JDs
-  'leadership', 'communication', 'problem solving', 'analytical', 'team player',
-  'collaboration', 'mentoring', 'project management', 'stakeholder management',
-  'cross-functional', 'self-starter', 'detail-oriented',
+]);
+
+const NON_TECHNICAL_SOFT_SKILLS = new Set([
+  'leadership', 'communication', 'problem solving', 'problem-solving', 'analytical',
+  'analytical skills', 'team player', 'collaboration', 'mentoring', 'project management',
+  'stakeholder management', 'cross-functional', 'self-starter', 'detail-oriented',
+  'critical thinking', 'time management', 'interpersonal skills', 'adaptability',
+  'work ethic', 'multitasking', 'problem solving skills'
 ]);
 
 // Patterns that typically introduce a requirement line in a job description
@@ -279,6 +283,10 @@ export function categorizeAndDeduplicateSkills(existingSkills = [], newSkills = 
     const lowerKey = trimmed.toLowerCase()
       .replace(/\s+/g, ' ')
       .replace(/^(the|a)\s+/i, '');
+
+    if (NON_TECHNICAL_SOFT_SKILLS.has(lowerKey) || NON_TECHNICAL_SOFT_SKILLS.has(trimmed.toLowerCase())) {
+      continue; // Exclude generic non-programming soft skills like "analytical skills", "problem solving", etc.
+    }
 
     const canonKey = canonicalizeSkillKey(lowerKey);
     if (seen.has(canonKey)) continue;

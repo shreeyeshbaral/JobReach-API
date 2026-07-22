@@ -1510,6 +1510,11 @@
             </div>
 
             <div class="field">
+              <label for="jobPostingLink">🔗 LinkedIn Job Posting URL / Post Link (Exact Link)</label>
+              <input type="text" id="jobPostingLink" placeholder="https://www.linkedin.com/feed/update/urn:li:activity:... or https://www.linkedin.com/jobs/view/...">
+            </div>
+
+            <div class="field">
               <label for="directJobDescription">Paste Job Description (JD) — Gemini AI will auto-read old resume + JD to
                 generate tailored PDF &amp; AI email body</label>
               <textarea id="directJobDescription" rows="4"
@@ -2214,12 +2219,36 @@ EXTRA-CURRICULARS
       const candLinkedin = val('candLinkedin', '[Candidate LinkedIn Profile]');
       const candGithub = val('candGithub', '[Candidate GitHub Profile]');
       const jobPostingLink = val('jobPostingLink', '[Job Posting Link]');
-      const candLocation = val('candLocation', '[Current Location]');
-      const candRelocation = val('candRelocation', '[Relocation Status]');
-      const candVisa = val('candVisa', '[Work Authorization]');
-      const candAvailability = val('candAvailability', '[Availability]');
-      const candExpYears = val('candExperienceYears', '[Total Experience]');
-      const candSalary = val('candSalary', '[Expected Salary]');
+
+      const rawLoc = val('candLocation');
+      const candLocation = (rawLoc && rawLoc !== '[Current Location]') ? rawLoc : 'Open / Remote';
+
+      const rawReloc = val('candRelocation');
+      const candRelocation = (!rawReloc || rawReloc === 'No' || rawReloc === 'N/A') ? 'Yes' : rawReloc;
+
+      const rawVisa = val('candVisa');
+      const candVisa = (!rawVisa || rawVisa === 'No' || rawVisa === 'N/A') ? 'STEM OPT' : rawVisa;
+
+      const rawAvail = val('candAvailability');
+      const candAvailability = (!rawAvail || rawAvail === 'N/A') ? 'Immediate' : rawAvail;
+
+      const rawExp = val('candExperienceYears');
+      let candExpYears = rawExp;
+      if (!candExpYears || candExpYears === '0' || candExpYears === 'N/A') {
+        const fullText = (val('candExperience') + ' ' + val('candEducation')).trim();
+        const yearMatches = fullText.match(/\b(199[5-9]|20[0-2]\d)\b/g) || [];
+        const currentYr = new Date().getFullYear();
+        const validYrs = yearMatches.map(y => parseInt(y, 10)).filter(y => y >= 1995 && y <= currentYr);
+        if (validYrs.length > 0) {
+          const yrs = currentYr - Math.min(...validYrs);
+          candExpYears = yrs > 0 ? `${yrs}+ years` : '1+ year';
+        } else {
+          candExpYears = '7+ years';
+        }
+      }
+
+      const rawSal = val('candSalary');
+      const candSalary = (!rawSal || rawSal === 'N/A') ? 'C2C only (discuss with employer)' : rawSal;
 
       function replaceTokens(text) {
         if (!text) return text;
@@ -2560,9 +2589,18 @@ EXTRA-CURRICULARS
         list.appendChild(card);
       });
 
-      // Auto-sync emails to composer after rendering
-      syncEmailsToComposer();
+    function updateJobSourceUrl(jobId, newUrl) {
+      const job = scrapedJobs.find(j => (j.post_id === jobId || j.id === jobId));
+      if (job) {
+        job.post_url = newUrl;
+        job.job_post_url = newUrl;
+        job.sourceUrl = newUrl;
+      }
     }
+
+    // Auto-sync emails to composer after rendering
+    syncEmailsToComposer();
+  }
 
     async function sendJobCardAIApplication(index) {
       const job = scrapedJobs[index];
@@ -2599,7 +2637,8 @@ EXTRA-CURRICULARS
 
       try {
         const template = val('emailTemplate');
-        const activeJob = { ...job, text: pastedJD };
+        const liveCardUrl = val(`job-link-${job.post_id || job.id}`) || val(`job-link-${job.id}`) || job.post_url || job.job_post_url || job.sourceUrl || val('jobPostingLink') || '';
+        const activeJob = { ...job, text: pastedJD, sourceUrl: liveCardUrl, job_post_url: liveCardUrl, post_url: liveCardUrl };
         const bodyText = formatBoilerplateEmail(template, activeJob);
 
         const fd = new FormData();
@@ -2608,7 +2647,8 @@ EXTRA-CURRICULARS
         fd.append('recruiterName', job.author || '');
         fd.append('jobTitle', jobTitle);
         fd.append('company', 'Hiring Team');
-        fd.append('sourceUrl', job.sourceUrl || '');
+        fd.append('sourceUrl', liveCardUrl);
+        fd.append('jobPostingLink', liveCardUrl);
         fd.append('message', bodyText);
         fd.append('customiseResume', 'true');
         fd.append('candidateEmail', val('candEmail'));
@@ -2616,6 +2656,12 @@ EXTRA-CURRICULARS
         fd.append('candidateSummary', val('candSummary'));
         fd.append('candidateLinkedin', val('candLinkedin'));
         fd.append('candidateGithub', val('candGithub'));
+        fd.append('candidateLocation', val('candLocation'));
+        fd.append('candidateRelocation', val('candRelocation'));
+        fd.append('candidateVisa', val('candVisa'));
+        fd.append('candidateAvailability', val('candAvailability'));
+        fd.append('candidateExperienceYears', val('candExperienceYears'));
+        fd.append('candidateSalary', val('candSalary'));
         fd.append('jobPostingLink', val('jobPostingLink'));
         fd.append('candidateExperience', val('candExperience'));
         fd.append('candidateEducation', val('candEducation'));
@@ -2692,6 +2738,12 @@ EXTRA-CURRICULARS
         fd.append('candidateSummary', val('candSummary'));
         fd.append('candidateLinkedin', val('candLinkedin'));
         fd.append('candidateGithub', val('candGithub'));
+        fd.append('candidateLocation', val('candLocation'));
+        fd.append('candidateRelocation', val('candRelocation'));
+        fd.append('candidateVisa', val('candVisa'));
+        fd.append('candidateAvailability', val('candAvailability'));
+        fd.append('candidateExperienceYears', val('candExperienceYears'));
+        fd.append('candidateSalary', val('candSalary'));
         fd.append('jobPostingLink', val('jobPostingLink'));
         fd.append('candidateExperience', val('candExperience'));
         fd.append('candidateEducation', val('candEducation'));
@@ -2825,6 +2877,9 @@ EXTRA-CURRICULARS
         .replace(/\{\{\s*job_title\s*\}\}/gi, jobTitle)
         .replace(/\{\{\s*company_name\s*\}\}/gi, companyName)
         .replace(/\{\{\s*job_post_url\s*\}\}/gi, jobPostingLink)
+        .replace(/\{\{\s*post_url\s*\}\}/gi, jobPostingLink)
+        .replace(/\{\{\s*linkedin_post_url\s*\}\}/gi, jobPostingLink)
+        .replace(/\{\{\s*source_url\s*\}\}/gi, jobPostingLink)
         .replace(/\{\{\s*job_description\s*\}\}/gi, jobDescription)
         .replace(/\{\{\s*candidate_name\s*\}\}/gi, candName)
         .replace(/\{\{\s*candidate_email\s*\}\}/gi, candEmail)
@@ -2842,13 +2897,18 @@ EXTRA-CURRICULARS
         .replace(/\[Candidate LinkedIn Profile\]/gi, candLinkedin)
         .replace(/\[Candidate GitHub Profile\]/gi, candGithub)
         .replace(/\[Job Posting Link\]/gi, jobPostingLink)
+        .replace(/\[Job Source URL\]/gi, jobPostingLink)
+        .replace(/\[LinkedIn Post URL\]/gi, jobPostingLink)
+        .replace(/\[LinkedIn Post Link\]/gi, jobPostingLink)
+        .replace(/\[LinkedIn Post\]/gi, jobPostingLink)
+        .replace(/\[Job Post Link\]/gi, jobPostingLink)
+        .replace(/\[Job Link\]/gi, jobPostingLink)
         .replace(/\[Current Location\]/gi, candLocation)
         .replace(/\[Relocation Status\]/gi, candRelocation)
         .replace(/\[Work Authorization\]/gi, candVisa)
         .replace(/\[Availability\]/gi, candAvailability)
         .replace(/\[Total Experience\]/gi, candExpYears)
         .replace(/\[Expected Salary\]/gi, candSalary)
-        .replace(/\[Job Source URL\]/gi, jobPostingLink)
         .replace(/\[Job Post Description\]/gi, jobDescription);
 
       return body;
@@ -2918,11 +2978,12 @@ EXTRA-CURRICULARS
           try {
             emailConsole.textContent += `[${new Date().toLocaleTimeString()}] Sending application to ${email}…\n`;
 
-            const activeJob = { ...job, text: pastedJD };
+            const liveJobUrl = val(`job-link-${job.post_id || job.id}`) || val(`job-link-${job.id}`) || job.post_url || job.job_post_url || job.sourceUrl || val('jobPostingLink') || 'https://www.linkedin.com';
+            const activeJob = { ...job, text: pastedJD, sourceUrl: liveJobUrl, job_post_url: liveJobUrl, post_url: liveJobUrl };
             let bodyText = formatBoilerplateEmail(template, activeJob);
 
             const recName = job.recruiter_name || job.author || 'Hiring Team';
-            const jobUrl = job.sourceUrl || job.job_post_url || val('jobPostingLink') || 'https://www.linkedin.com';
+            const jobUrl = liveJobUrl;
 
             const fd = new FormData();
             fd.append('to', email);
@@ -2944,6 +3005,12 @@ EXTRA-CURRICULARS
               fd.append('candidateSummary', val('candSummary'));
               fd.append('candidateLinkedin', val('candLinkedin'));
               fd.append('candidateGithub', val('candGithub'));
+              fd.append('candidateLocation', val('candLocation'));
+              fd.append('candidateRelocation', val('candRelocation'));
+              fd.append('candidateVisa', val('candVisa'));
+              fd.append('candidateAvailability', val('candAvailability'));
+              fd.append('candidateExperienceYears', val('candExperienceYears'));
+              fd.append('candidateSalary', val('candSalary'));
               fd.append('jobPostingLink', jobUrl);
               fd.append('candidateExperience', val('candExperience'));
               fd.append('candidateEducation', val('candEducation'));

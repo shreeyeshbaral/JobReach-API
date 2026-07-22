@@ -222,7 +222,7 @@ router.post('/send', upload.single('resume'), async (req, res) => {
       to, candidateName, jobTitle, company = 'your company', sourceUrl = '', message,
       customiseResume, candidateEmail, candidatePhone, recruiterName,
       candidateSummary, candidateExperience, candidateEducation,
-      candidateSkills, candidateLinkedin, candidateGithub, jobPostingLink, jobPostText, rawResumeText, baseResume
+      candidateSkills, candidateLinkedin, candidateGithub, candidateLocation, candidateRelocation, candidateVisa, candidateAvailability, candidateExperienceYears, candidateSalary, jobPostingLink, jobPostText, rawResumeText, baseResume
     } = req.body;
 
     const validation = validateJobData({
@@ -331,7 +331,13 @@ router.post('/send', upload.single('resume'), async (req, res) => {
       candidate_email: candidateEmail,
       candidate_phone: candidatePhone,
       candidate_linkedin: candidateLinkedin,
-      candidate_github: candidateGithub
+      candidate_github: candidateGithub,
+      candidate_location: candidateLocation || resumeObj?.candidateLocation,
+      candidate_relocation: candidateRelocation || resumeObj?.candidateRelocation,
+      candidate_visa: candidateVisa || resumeObj?.candidateVisa,
+      candidate_availability: candidateAvailability || resumeObj?.candidateAvailability,
+      candidate_experience_years: candidateExperienceYears || resumeObj?.candidateExperienceYears,
+      candidate_salary: candidateSalary || resumeObj?.candidateSalary
     }) : '';
 
     if (!text) {

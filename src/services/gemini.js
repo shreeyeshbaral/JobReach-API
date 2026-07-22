@@ -747,6 +747,8 @@ ${currentSkills}
 
 CRITICAL RULE — SKILL-ONLY & CATEGORIZED DEDUPLICATED MODIFICATION:
 - Modify ONLY the "technicalSkills" array.
+- ONLY extract and add concrete programming skills, languages, frameworks, databases, tools, and technical platforms (e.g. Java, Python, React, TypeScript, Node.js, PostgreSQL, Docker, AWS).
+- STRICTLY EXCLUDE all non-programming soft skills, behavioral traits, or vague qualities (e.g. DO NOT include "analytical skills", "problem solving", "communication", "leadership", "team player", "critical thinking", or "detail-oriented"). Filter out all soft skills completely!
 - Compare required skills from the Job Description against the candidate's existing skills to AVOID duplication/repetition.
 - Group all technical skills into distinct domain categories (e.g. "Languages: ...", "Frameworks & Libraries: ...", "Databases: ...", "Cloud & DevOps: ...", "AI & ML: ...", "Tools & Platforms: ...").
 - Do NOT create generic headers like "Targeted Skills" or "Target Role Skills". Put newly added skills directly into their actual domain category (Languages, Databases, DevOps, etc.).

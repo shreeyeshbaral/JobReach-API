@@ -240,4 +240,46 @@ assert.ok(formatted.includes('Building autonomous AI models.'), 'Should substitu
 assert.ok(formatted.includes('Shreeyesh Baral'), 'Should substitute {{ candidate_name }}');
 console.log('  ✓ Dynamic template injector populates all placeholders without leaving empty tags');
 
+// ═══════════════════════════════════════════
+//  Unit Test: Experience Calculation & Profile Defaults
+// ═══════════════════════════════════════════
+console.log('Running unit tests for Experience Calculation & Profile Defaults...');
+import { calculateExperienceYears } from '../src/utils/jobs.js';
+
+const resumeWithDates = 'Worked as Software Engineer at Acme Corp from Jan 2019 to Present. Graduated in 2019.';
+const calcExp = calculateExperienceYears(resumeWithDates);
+assert.equal(calcExp, '7+ years', '2026 - 2019 should calculate 7+ years of experience');
+
+const profileTemplate = `- Relocation Status: [Relocation Status]\n- Work Authorization: [Work Authorization]\n- Availability: [Availability]\n- Total Experience: [Total Experience]\n- Expected Salary: [Expected Salary]`;
+const formattedProfile = formatTemplateWithVariables(profileTemplate, { resumeText: resumeWithDates });
+
+assert.ok(formattedProfile.includes('- Relocation Status: Yes'), 'Should default relocation to Yes');
+assert.ok(formattedProfile.includes('- Work Authorization: STEM OPT'), 'Should default visa to STEM OPT');
+assert.ok(formattedProfile.includes('- Availability: Immediate'), 'Should default availability to Immediate');
+assert.ok(formattedProfile.includes('- Total Experience: 7+ years'), 'Should calculate 7+ years experience');
+assert.ok(formattedProfile.includes('- Expected Salary: C2C only (discuss with employer)'), 'Should default salary to C2C only (discuss with employer)');
+console.log('  ✓ Profile summary placeholders populates calculated experience and exact specified defaults!');
+
+// ═══════════════════════════════════════════
+//  Unit Test: Programming Skills Only (Exclude Soft Skills)
+// ═══════════════════════════════════════════
+console.log('Running unit tests for Programming Skills Only (Excluding Soft Skills)...');
+import { categorizeAndDeduplicateSkills } from '../src/utils/resumeKeywords.js';
+
+const mixedSkills = [
+  'Java', 'Python', 'React', 'PostgreSQL', 'Docker',
+  'Analytical Skills', 'Problem Solving', 'Leadership', 'Communication', 'Team Player'
+];
+
+const categorized = categorizeAndDeduplicateSkills([], mixedSkills);
+const categorizedStr = categorized.join('\n').toLowerCase();
+
+assert.ok(categorizedStr.includes('java'), 'Should include programming language Java');
+assert.ok(categorizedStr.includes('python'), 'Should include programming language Python');
+assert.ok(categorizedStr.includes('react'), 'Should include framework React');
+assert.ok(!categorizedStr.includes('analytical'), 'Must exclude non-programming soft skill "Analytical Skills"');
+assert.ok(!categorizedStr.includes('problem solving'), 'Must exclude non-programming soft skill "Problem Solving"');
+assert.ok(!categorizedStr.includes('leadership'), 'Must exclude non-programming soft skill "Leadership"');
+console.log('  ✓ Non-programming soft skills (analytical skills, problem solving, leadership, etc.) strictly excluded!');
+
 console.log('\nAll core tests passed successfully. ✓');

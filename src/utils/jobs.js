@@ -261,6 +261,38 @@ export function validateJobData(job = {}) {
 }
 
 /**
+ * Calculates candidate total experience years from resume dates (earliest job or graduation year to current year 2026).
+ */
+export function calculateExperienceYears(resumeData = '') {
+  const currentYear = new Date().getFullYear(); // 2026
+  let text = '';
+  
+  if (typeof resumeData === 'string') {
+    text = resumeData;
+  } else if (typeof resumeData === 'object' && resumeData !== null) {
+    text = JSON.stringify(resumeData);
+  }
+
+  if (!text) return '7+ years';
+
+  // Match 4-digit years between 1995 and currentYear
+  const yearMatches = text.match(/\b(199[5-9]|20[0-2]\d)\b/g) || [];
+  const validYears = yearMatches
+    .map(y => parseInt(y, 10))
+    .filter(y => y >= 1995 && y <= currentYear);
+
+  if (validYears.length === 0) {
+    return '7+ years';
+  }
+
+  const earliestYear = Math.min(...validYears);
+  const years = currentYear - earliestYear;
+  
+  if (years <= 0) return '1+ year';
+  return `${years}+ years`;
+}
+
+/**
  * Dynamic Template Injector per Phase 7 & 9 requirements.
  * Supports both Handlebars {{ variable_name }} and Bracket [Variable Name] placeholders.
  */
@@ -283,18 +315,45 @@ export function formatTemplateWithVariables(templateStr = '', vars = {}) {
   const cand_linkedin = vars.candidate_linkedin || vars.candLinkedin || vars.candidateLinkedin || '';
   const cand_github = vars.candidate_github || vars.candGithub || vars.candidateGithub || '';
 
+  const cand_location = vars.candidate_location || vars.candLocation || vars.candidateLocation || 'Open / Remote';
+  const cand_relocation = (vars.candidate_relocation || vars.candRelocation || vars.candidateRelocation || '').trim();
+  const clean_relocation = (!cand_relocation || cand_relocation === 'No' || cand_relocation === 'N/A') ? 'Yes' : cand_relocation;
+
+  const cand_visa = (vars.candidate_visa || vars.candVisa || vars.candidateVisa || '').trim();
+  const clean_visa = (!cand_visa || cand_visa === 'No' || cand_visa === 'N/A') ? 'STEM OPT' : cand_visa;
+
+  const cand_avail = (vars.candidate_availability || vars.candAvailability || vars.candidateAvailability || '').trim();
+  const clean_avail = (!cand_avail || cand_avail === 'N/A') ? 'Immediate' : cand_avail;
+
+  const cand_exp = (vars.candidate_experience_years || vars.candExperienceYears || vars.candidateExperienceYears || '').trim();
+  const clean_exp = (!cand_exp || cand_exp === '0' || cand_exp === 'N/A') 
+    ? calculateExperienceYears(vars.resumeText || vars.rawResumeText || vars.experience || vars.job_description || vars) 
+    : cand_exp;
+
+  const cand_sal = (vars.candidate_salary || vars.candSalary || vars.candidateSalary || '').trim();
+  const clean_sal = (!cand_sal || cand_sal === 'N/A') ? 'C2C only (discuss with employer)' : cand_sal;
+
   let output = templateStr
     // Handlebars placeholders {{ variable }}
     .replace(/\{\{\s*recruiter_name\s*\}\}/gi, recruiter_name)
     .replace(/\{\{\s*job_title\s*\}\}/gi, job_title)
     .replace(/\{\{\s*company_name\s*\}\}/gi, company_name)
     .replace(/\{\{\s*job_post_url\s*\}\}/gi, job_post_url)
+    .replace(/\{\{\s*post_url\s*\}\}/gi, job_post_url)
+    .replace(/\{\{\s*linkedin_post_url\s*\}\}/gi, job_post_url)
+    .replace(/\{\{\s*source_url\s*\}\}/gi, job_post_url)
     .replace(/\{\{\s*job_description\s*\}\}/gi, job_description)
     .replace(/\{\{\s*candidate_name\s*\}\}/gi, cand_name)
     .replace(/\{\{\s*candidate_email\s*\}\}/gi, cand_email)
     .replace(/\{\{\s*candidate_phone\s*\}\}/gi, cand_phone)
     .replace(/\{\{\s*candidate_linkedin\s*\}\}/gi, cand_linkedin)
     .replace(/\{\{\s*candidate_github\s*\}\}/gi, cand_github)
+    .replace(/\{\{\s*candidate_location\s*\}\}/gi, cand_location)
+    .replace(/\{\{\s*candidate_relocation\s*\}\}/gi, clean_relocation)
+    .replace(/\{\{\s*candidate_visa\s*\}\}/gi, clean_visa)
+    .replace(/\{\{\s*candidate_availability\s*\}\}/gi, clean_avail)
+    .replace(/\{\{\s*candidate_experience_years\s*\}\}/gi, clean_exp)
+    .replace(/\{\{\s*candidate_salary\s*\}\}/gi, clean_sal)
     // Bracket placeholders [Variable Name]
     .replace(/\[Recruiter Name\]/gi, recruiter_name)
     .replace(/\[Job Title\]/gi, job_title)
@@ -302,12 +361,23 @@ export function formatTemplateWithVariables(templateStr = '', vars = {}) {
     .replace(/\[Company\]/gi, company_name)
     .replace(/\[Job Source URL\]/gi, job_post_url)
     .replace(/\[Job Posting Link\]/gi, job_post_url)
+    .replace(/\[LinkedIn Post URL\]/gi, job_post_url)
+    .replace(/\[LinkedIn Post Link\]/gi, job_post_url)
+    .replace(/\[LinkedIn Post\]/gi, job_post_url)
+    .replace(/\[Job Post Link\]/gi, job_post_url)
+    .replace(/\[Job Link\]/gi, job_post_url)
     .replace(/\[Job Post Description\]/gi, job_description)
     .replace(/\[Candidate Name\]/gi, cand_name)
     .replace(/\[Candidate Email\]/gi, cand_email)
     .replace(/\[Candidate Phone\]/gi, cand_phone)
     .replace(/\[Candidate LinkedIn Profile\]/gi, cand_linkedin)
-    .replace(/\[Candidate GitHub Profile\]/gi, cand_github);
+    .replace(/\[Candidate GitHub Profile\]/gi, cand_github)
+    .replace(/\[Current Location\]/gi, cand_location)
+    .replace(/\[Relocation Status\]/gi, clean_relocation)
+    .replace(/\[Work Authorization\]/gi, clean_visa)
+    .replace(/\[Availability\]/gi, clean_avail)
+    .replace(/\[Total Experience\]/gi, clean_exp)
+    .replace(/\[Expected Salary\]/gi, clean_sal);
 
   return output;
 }
